@@ -8,10 +8,18 @@ import type { VanityAdvisorResponse } from "@/types/analysis";
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
+type UnitSystem = "metric" | "imperial";
+
 export function UploadForm() {
   const [files, setFiles] = useState<File[]>([]);
-  const [height, setHeight] = useState("");
-  const [weight, setWeight] = useState("");
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>("metric");
+
+  const [heightCm, setHeightCm] = useState("");
+  const [weightKg, setWeightKg] = useState("");
+  const [heightFt, setHeightFt] = useState("");
+  const [heightIn, setHeightIn] = useState("");
+  const [weightLbs, setWeightLbs] = useState("");
+
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [goals, setGoals] = useState("");
@@ -40,8 +48,11 @@ export function UploadForm() {
     try {
       const analysis = await analyzePhotos({
         images: files,
-        height_cm: height,
-        weight_kg: weight,
+        height_cm: unitSystem === "metric" ? heightCm : undefined,
+        weight_kg: unitSystem === "metric" ? weightKg : undefined,
+        height_ft: unitSystem === "imperial" ? heightFt : undefined,
+        height_in: unitSystem === "imperial" ? heightIn : undefined,
+        weight_lbs: unitSystem === "imperial" ? weightLbs : undefined,
         age,
         gender,
         goals
@@ -79,11 +90,40 @@ export function UploadForm() {
           </div>
         )}
 
-        <div className="grid gap-3 md:grid-cols-3">
-          <input value={height} onChange={(e) => setHeight(e.target.value)} placeholder="Height (cm)" className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
-          <input value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="Weight (kg)" className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
-          <input value={age} onChange={(e) => setAge(e.target.value)} placeholder="Age" className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Units</p>
+          <div className="inline-flex rounded-md border border-slate-700 p-1 text-sm">
+            <button
+              type="button"
+              onClick={() => setUnitSystem("metric")}
+              className={`rounded px-3 py-1 ${unitSystem === "metric" ? "bg-indigo-500 text-white" : "text-slate-300"}`}
+            >
+              Metric (cm / kg)
+            </button>
+            <button
+              type="button"
+              onClick={() => setUnitSystem("imperial")}
+              className={`rounded px-3 py-1 ${unitSystem === "imperial" ? "bg-indigo-500 text-white" : "text-slate-300"}`}
+            >
+              Imperial (ft/in / lbs)
+            </button>
+          </div>
         </div>
+
+        {unitSystem === "metric" ? (
+          <div className="grid gap-3 md:grid-cols-3">
+            <input value={heightCm} onChange={(e) => setHeightCm(e.target.value)} placeholder="Height (cm)" className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+            <input value={weightKg} onChange={(e) => setWeightKg(e.target.value)} placeholder="Weight (kg)" className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+            <input value={age} onChange={(e) => setAge(e.target.value)} placeholder="Age" className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+          </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-4">
+            <input value={heightFt} onChange={(e) => setHeightFt(e.target.value)} placeholder="Height (ft)" className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+            <input value={heightIn} onChange={(e) => setHeightIn(e.target.value)} placeholder="Height (in)" className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+            <input value={weightLbs} onChange={(e) => setWeightLbs(e.target.value)} placeholder="Weight (lbs)" className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+            <input value={age} onChange={(e) => setAge(e.target.value)} placeholder="Age" className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+          </div>
+        )}
 
         <select
           value={gender}
@@ -122,4 +162,3 @@ export function UploadForm() {
     </div>
   );
 }
-

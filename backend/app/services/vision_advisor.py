@@ -162,6 +162,9 @@ class VisionAdvisorService:
         user_context = {
             "height_cm": context.height_cm,
             "weight_kg": context.weight_kg,
+            "height_ft": context.height_ft,
+            "height_in": context.height_in,
+            "weight_lbs": context.weight_lbs,
             "age": context.age,
             "gender": context.gender,
             "goals": context.goals,

@@ -23,6 +23,9 @@ export interface AnalyzeRequest {
   images: File[];
   height_cm?: string;
   weight_kg?: string;
+  height_ft?: string;
+  height_in?: string;
+  weight_lbs?: string;
   age?: string;
   gender?: string;
   goals?: string;

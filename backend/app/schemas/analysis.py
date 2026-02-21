@@ -6,6 +6,9 @@ from pydantic import BaseModel, Field
 class UserContext(BaseModel):
     height_cm: float | None = Field(default=None, ge=80, le=260)
     weight_kg: float | None = Field(default=None, ge=25, le=300)
+    height_ft: int | None = Field(default=None, ge=3, le=8)
+    height_in: int | None = Field(default=None, ge=0, le=11)
+    weight_lbs: float | None = Field(default=None, ge=55, le=660)
     age: int | None = Field(default=None, ge=13, le=100)
     gender: str | None = None
     goals: str | None = Field(default=None, max_length=500)

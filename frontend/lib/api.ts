@@ -9,6 +9,9 @@ export async function analyzePhotos(payload: AnalyzeRequest): Promise<VanityAdvi
 
   if (payload.height_cm) formData.append("height_cm", payload.height_cm);
   if (payload.weight_kg) formData.append("weight_kg", payload.weight_kg);
+  if (payload.height_ft) formData.append("height_ft", payload.height_ft);
+  if (payload.height_in) formData.append("height_in", payload.height_in);
+  if (payload.weight_lbs) formData.append("weight_lbs", payload.weight_lbs);
   if (payload.age) formData.append("age", payload.age);
   if (payload.gender) formData.append("gender", payload.gender);
   if (payload.goals) formData.append("goals", payload.goals);

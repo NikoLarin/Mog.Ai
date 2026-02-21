@@ -74,7 +74,7 @@ npm run dev
 - Primary/fallback model handling (`OPENAI_MODEL` + `OPENAI_MODEL_FALLBACK`) for 429/5xx resilience.
 - Next.js 14 App Router frontend with Tailwind clean components:
   - multi-file upload/drop input with thumbnail previews,
-  - optional demographic/goals form fields,
+  - optional demographic/goals form fields with metric or imperial body stats,
   - submit flow to backend `/api/v1/analyze`,
   - loading/error states,
   - structured result cards for body-fat estimate, eyebrow/neck/symmetry insights, roadmap, and safety notes.

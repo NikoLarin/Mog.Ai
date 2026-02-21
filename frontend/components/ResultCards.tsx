@@ -20,6 +20,36 @@ const PLAYBOOK: PlaybookItem[] = [
     ]
   },
   {
+    trigger: /eyelash|lashes|lash|brow density|sparse brow|thin brow|eyebrow|brow/i,
+    title: "Eyebrow and lash grooming / growth",
+    methods: [
+      "Set a conservative shaping cadence (every 10-14 days) and avoid aggressive over-plucking.",
+      "Use brow castor-oil or peptide serum nightly for 8-12 weeks; patch test first.",
+      "If growth is poor, ask a dermatologist about evidence-based options (including prescription pathways) before trying stronger products.",
+      "For lashes, prioritize gentle cleansing + non-waterproof mascara on training days to reduce breakage."
+    ]
+  },
+  {
+    trigger: /hair color|hair colour|gray|grey|washed out|dull hair|contrast|hair tone|hair dye|hair dying/i,
+    title: "Hair color optimization",
+    methods: [
+      "Book a color consultation and match tone to skin undertone (warm/neutral/cool) instead of picking random shades.",
+      "Use semi-permanent tests first before permanent dye so you can calibrate depth without major damage.",
+      "Add bond-repair + weekly conditioning mask to maintain shine and prevent brittle texture.",
+      "Keep brows/beard tone harmonized with hair color so facial contrast looks intentional."
+    ]
+  },
+  {
+    trigger: /teeth|smile|yellow|stain|dull enamel|oral/i,
+    title: "Smile and teeth brightness",
+    methods: [
+      "Start with a hygienist cleaning before whitening so results are more even.",
+      "Use peroxide strips or trays on a controlled schedule (e.g. 10-14 sessions), then taper to maintenance.",
+      "Use sensitivity toothpaste during whitening blocks and pause if pain spikes.",
+      "For deeper discoloration or alignment issues, discuss professional whitening/bonding/ortho with a licensed dentist."
+    ]
+  },
+  {
     trigger: /neck|posture|forward head|shoulder|rounded/i,
     title: "Neck line and posture",
     methods: [
@@ -70,7 +100,35 @@ const PLAYBOOK: PlaybookItem[] = [
     methods: [
       "Prefer gradual self-tanner with patch test and exfoliation prep for safer, controlled tone.",
       "Daily SPF 30+ baseline to avoid UV damage and uneven pigmentation.",
+      "Use a 2-shade maximum darkening target to keep results natural and avoid orange cast.",
       "For procedural/cosmetic tanning options, consult dermatologist first for risk counseling."
+    ]
+  },
+  {
+    trigger: /lip|chapped|dry lips|mouth area/i,
+    title: "Lip and mouth-area polish",
+    methods: [
+      "Nightly occlusive balm + daytime SPF lip protection to improve texture within 2-3 weeks.",
+      "Use gentle exfoliation 1x/week max (no harsh scrubs) to avoid irritation.",
+      "Keep hydration/sodium balance stable to reduce dry-mouth look in photos."
+    ]
+  },
+  {
+    trigger: /beard|facial hair|patchy beard|mustache/i,
+    title: "Facial hair strategy",
+    methods: [
+      "Choose either clean-shaven or a short boxed beard based on your jaw/cheek density—avoid in-between messy lengths.",
+      "Line up neckline 1-2 finger widths above Adam's apple and keep cheek lines symmetrical.",
+      "If density is limited, discuss evidence-based growth options with a physician before medicated products."
+    ]
+  },
+  {
+    trigger: /dark circles|eye bags|tired eyes|sleep/i,
+    title: "Eye-area recovery and alertness",
+    methods: [
+      "Lock a consistent sleep window (same bedtime/wake time) for 3-4 weeks before judging changes.",
+      "Morning cold compress + caffeine eye serum can reduce puffiness for daytime presentation.",
+      "If persistent pigment/hollows remain, discuss dermatologist options (topicals/procedures) with risk review."
     ]
   },
   {
@@ -83,6 +141,22 @@ const PLAYBOOK: PlaybookItem[] = [
     ]
   }
 ];
+
+function wrapPdfLine(line: string, maxChars = 88): string[] {
+  if (line.length <= maxChars) return [line];
+
+  const parts: string[] = [];
+  let remaining = line;
+  while (remaining.length > maxChars) {
+    const slice = remaining.slice(0, maxChars + 1);
+    const breakAt = Math.max(slice.lastIndexOf(" "), slice.lastIndexOf("/"), slice.lastIndexOf("-"));
+    const cut = breakAt > 20 ? breakAt : maxChars;
+    parts.push(remaining.slice(0, cut).trimEnd());
+    remaining = remaining.slice(cut).trimStart();
+  }
+  if (remaining.length) parts.push(remaining);
+  return parts;
+}
 
 function getPlaybook(areas: string[]): PlaybookItem[] {
   const text = areas.join(" ");
@@ -107,7 +181,8 @@ function escapePdfText(input: string): string {
 }
 
 function buildSimplePdf(lines: string[]): Uint8Array {
-  const safeLines = lines.slice(0, 90);
+  const wrappedLines = lines.flatMap((line) => wrapPdfLine(line));
+  const safeLines = wrappedLines.slice(0, 120);
   const content = safeLines
     .map((line, idx) => `BT /F1 11 Tf 50 ${780 - idx * 14} Td (${escapePdfText(line)}) Tj ET`)
     .join("\n");

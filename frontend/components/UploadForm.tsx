@@ -101,6 +101,17 @@ export function UploadForm() {
           <input type="file" multiple accept="image/jpeg,image/png,image/webp" className="hidden" onChange={onFileChange} />
         </label>
 
+
+        <div className="rounded-lg border border-slate-700 bg-slate-900/60 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-300">Photo quality checklist</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-200">
+            <li>Use even front lighting and avoid harsh top-down shadows.</li>
+            <li>Take front, side, and back shots at the same camera distance.</li>
+            <li>Keep neutral pose/expression and avoid extreme camera angles.</li>
+            <li>Use plain fitted clothing and clean background for clearer contours.</li>
+          </ul>
+        </div>
+
         {previews.length > 0 && (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {previews.map(({ file, url }) => (

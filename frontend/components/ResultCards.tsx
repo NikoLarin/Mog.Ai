@@ -10,58 +10,76 @@ type PlaybookItem = {
 
 const PLAYBOOK: PlaybookItem[] = [
   {
-    trigger: /skin|acne|clarity|under-eye|texture/i,
+    trigger: /skin|acne|clarity|under-eye|texture|pores|pigment/i,
     title: "Skin clarity / eye-area freshness",
     methods: [
-      "Diet protocol (8-12 weeks): prioritize low-glycemic carbs, 30-40g fiber/day, and omega-3 sources 4-5x/week.",
-      "Inflammation control: keep alcohol low, hydrate consistently, and standardize 7.5-9h sleep.",
-      "Topicals with clinician plan: retinoid at night + azelaic acid in daytime if tolerated; titrate slowly.",
-      "Medical escalation: for persistent acne, discuss prescription pathways (e.g., topical/oral options) with a dermatologist only."
+      "Diet protocol (8-12 weeks): low-glycemic carb focus, 30-40g fiber/day, omega-3 intake 4-5x/week.",
+      "Recovery protocol: fixed sleep/wake window, hydration target, and reduced alcohol for inflammation control.",
+      "Topical progression: discuss retinoid + azelaic strategy with a clinician; start low-frequency and titrate.",
+      "If stubborn, consult dermatologist for prescription options and risk review before starting treatment."
     ]
   },
   {
-    trigger: /neck|posture|forward head|shoulder/i,
+    trigger: /neck|posture|forward head|shoulder|rounded/i,
     title: "Neck line and posture",
     methods: [
-      "Corrective block (3x/week): chin tucks 2x12, wall slides 2x12, face pulls 3x15, chest-supported rows 3x10.",
-      "Mobility daily: 5 min thoracic extension + 2 sets doorway pec stretch (45 sec).",
-      "Progression rule: increase load/volume by ~5-10% weekly max; stop immediately if radiating pain appears."
+      "3x/week correction block: chin tucks 2x12, wall slides 2x12, face pulls 3x15, chest-supported rows 3x10.",
+      "Daily mobility: 5 min thoracic extension + pec stretch 2x45s.",
+      "Progress by 5-10% max weekly and stop if radiating pain or numbness appears."
     ]
   },
   {
-    trigger: /body fat|definition|lean|waist|fat/i,
+    trigger: /body fat|definition|lean|waist|fat|cut/i,
     title: "Leaner look / sharper definition",
     methods: [
-      "Calorie setup: run a 300-500 kcal deficit and adjust weekly from trend weight/photos, not day-to-day fluctuations.",
-      "Training split: 4 sessions/week with progressive overload on squat/hinge/push/pull patterns.",
-      "NEAT target: 8k-12k steps/day to improve fat loss consistency without extreme dieting."
+      "Set a moderate 300-500 kcal deficit, recalibrate weekly via trend weight + consistent comparison photos.",
+      "Lift 4 days/week using progressive overload (push/pull/legs/upper-lower).",
+      "Keep NEAT high (8-12k steps/day) and protein consistent to preserve muscle shape."
     ]
   },
   {
-    trigger: /jaw|face puff|bloat|water/i,
-    title: "Jawline sharpness / facial de-bloat",
+    trigger: /jaw|face puff|bloat|water retention|puffy/i,
+    title: "Jawline sharpness / de-bloat",
     methods: [
-      "Sodium and hydration consistency: keep both stable day-to-day to reduce visual puffiness swings.",
-      "Sleep timing: fixed wake time improves cortisol rhythm and morning facial fluid retention.",
-      "Cut late-night high-sodium meals 5-6 days/week for more stable morning jawline definition."
+      "Stabilize sodium and water day-to-day to reduce visual puffiness variance.",
+      "Avoid late-night high-sodium meals most days for cleaner morning definition.",
+      "Track morning photos under identical lighting to separate fat change from water fluctuations."
+    ]
+  },
+  {
+    trigger: /eyebrow|brow/i,
+    title: "Eyebrow detailing",
+    methods: [
+      "Use a 10-14 day grooming cadence and avoid over-thinning the tails.",
+      "Light tint/fill strategy can improve frame symmetry in photos.",
+      "Discuss medical-growth options only after physician screening and risk review."
+    ]
+  },
+  {
+    trigger: /hairline|hair|framing/i,
+    title: "Hair framing and hairline presentation",
+    methods: [
+      "Choose haircut structure that opens eye area and reinforces cheekbone/jaw lines.",
+      "Use volume control products to avoid flattening that narrows perceived facial width.",
+      "Any medication/procedure discussions should be clinician-guided and personalized."
     ]
   },
   {
     trigger: /tanning|pale|tone|complexion/i,
     title: "Skin tone presentation / tanning",
     methods: [
-      "Safer option first: use high-quality gradual self-tanner (patch test + exfoliation + moisturizer prep).",
-      "Sun-safety baseline: daily SPF 30+ and avoid intentional sunburns; UV overexposure accelerates skin aging.",
-      "If considering in-office tanning/cosmetic procedures, get dermatologist guidance and risk counseling first."
+      "Prefer gradual self-tanner with patch test and exfoliation prep for safer, controlled tone.",
+      "Daily SPF 30+ baseline to avoid UV damage and uneven pigmentation.",
+      "For procedural/cosmetic tanning options, consult dermatologist first for risk counseling."
     ]
   },
   {
-    trigger: /eyebrow|brow|hairline|hair/i,
-    title: "Eyebrow and hair framing",
+    trigger: /symmetry|proportion|facial harmony|angles/i,
+    title: "Symmetry and proportions presentation",
     methods: [
-      "Grooming cadence: maintain 10-14 day shaping, avoid over-thinning, and keep brow tails balanced.",
-      "Hair framing: choose volume/parting that opens the eye area and supports cheekbone/jaw proportions.",
-      "Medical-growth discussion: only consider medication-based growth interventions after physician review of risks."
+      "Use camera at eye level, neutral expression, and straight stance to avoid symmetry distortion.",
+      "Practice 3 static poses (front/45-degree/side) to identify your strongest visual angles.",
+      "Use consistent grooming and hair parting for week-to-week visual comparability."
     ]
   }
 ];
@@ -77,8 +95,8 @@ function getPlaybook(areas: string[]): PlaybookItem[] {
       title: "General execution",
       methods: [
         "Set 3 weekly KPIs: physique, posture, and grooming; review every Sunday.",
-        "Track with identical weekly photos and keep one variable change at a time.",
-        "Prefer sustainable progression over aggressive spikes to avoid rebounds."
+        "Use identical weekly photos and only change one variable at a time.",
+        "Prioritize sustainable progression over aggressive spikes to avoid rebound."
       ]
     }
   ];
@@ -89,7 +107,7 @@ function escapePdfText(input: string): string {
 }
 
 function buildSimplePdf(lines: string[]): Uint8Array {
-  const safeLines = lines.slice(0, 80);
+  const safeLines = lines.slice(0, 90);
   const content = safeLines
     .map((line, idx) => `BT /F1 11 Tf 50 ${780 - idx * 14} Td (${escapePdfText(line)}) Tj ET`)
     .join("\n");
@@ -121,35 +139,20 @@ function buildSimplePdf(lines: string[]): Uint8Array {
 }
 
 function downloadPdfReport(result: VanityAdvisorResponse, playbook: PlaybookItem[]): void {
-  const lines: string[] = [
-    "Mog.Ai Vanity Advisor Report",
-    "",
-    "Overall Summary:",
-    result.overall_aesthetic_summary,
-    "",
-    "Strengths:"
-  ];
+  const lines: string[] = ["Mog.Ai Vanity Advisor Report", "", "Overall Summary:", result.overall_aesthetic_summary, "", "Strengths:"];
 
   result.strengths.forEach((s) => lines.push(`- ${s}`));
   lines.push("", "Areas for Improvement:");
   result.areas_for_improvement.forEach((a) => lines.push(`- ${a}`));
-  lines.push(
-    "",
-    `Body Fat Estimate: ${result.body_fat_estimate.percentage}% ${result.body_fat_estimate.range ? `(${result.body_fat_estimate.range})` : ""} | ${result.body_fat_estimate.confidence}`,
-    "",
-    "Personalized Steps:"
-  );
+  lines.push("", `Body Fat Estimate: ${result.body_fat_estimate.percentage}% ${result.body_fat_estimate.range ? `(${result.body_fat_estimate.range})` : ""} | ${result.body_fat_estimate.confidence}`, "", "Personalized Steps:");
   result.personalized_steps.forEach((step, i) => lines.push(`${i + 1}. ${step}`));
-
   lines.push("", "Practical Methods:");
   playbook.forEach((item) => {
     lines.push(`* ${item.title}`);
     item.methods.forEach((m) => lines.push(`  - ${m}`));
   });
-
   lines.push("", "Limitations:");
   result.limitations.forEach((item) => lines.push(`- ${item}`));
-  lines.push("", "Medical note: Any pharmaceutical intervention requires licensed doctor supervision.");
 
   const bytes = buildSimplePdf(lines);
   const blob = new Blob([bytes], { type: "application/pdf" });
@@ -173,13 +176,7 @@ export function ResultCards({ result }: { result: VanityAdvisorResponse }) {
             <h2 className="text-xl font-semibold">Overall Aesthetic Summary</h2>
             <p className="mt-2 text-sm text-slate-100">{result.overall_aesthetic_summary}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => downloadPdfReport(result, playbook)}
-            className="rounded-md border border-indigo-500 bg-indigo-500/20 px-3 py-2 text-xs font-semibold text-indigo-100 hover:bg-indigo-500/30"
-          >
-            Download PDF report
-          </button>
+          <button type="button" onClick={() => downloadPdfReport(result, playbook)} className="rounded-md border border-indigo-500 bg-indigo-500/20 px-3 py-2 text-xs font-semibold text-indigo-100 hover:bg-indigo-500/30">Download PDF report</button>
         </div>
       </section>
 
@@ -193,6 +190,16 @@ export function ResultCards({ result }: { result: VanityAdvisorResponse }) {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="card">
+        <h3 className="text-lg font-semibold">Photo Capture Checklist (for most accurate next scan)</h3>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-100">
+          <li>Use even front lighting (natural window light or soft diffused light), avoid overhead shadows.</li>
+          <li>Take front, left side, right side, and back photos with neutral posture and relaxed face.</li>
+          <li>Keep camera at chest/eye level, same distance each shot, and avoid wide-angle lens distortion.</li>
+          <li>Wear fitted/plain clothing and keep background uncluttered for better contour visibility.</li>
+        </ul>
       </section>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -229,16 +236,12 @@ export function ResultCards({ result }: { result: VanityAdvisorResponse }) {
             </div>
           ))}
         </div>
-        <p className="mt-3 rounded-md bg-rose-500/15 px-3 py-2 text-xs text-rose-100">
-          Any pharmaceutical or prescription intervention requires informed consent and licensed doctor supervision.
-        </p>
+        <p className="mt-3 rounded-md bg-rose-500/15 px-3 py-2 text-xs text-rose-100">Any pharmaceutical or prescription intervention requires informed consent and licensed doctor supervision.</p>
       </section>
 
       <section className="card">
         <h3 className="text-lg font-semibold">Body Fat Estimate</h3>
-        <p className="mt-2 text-sm text-slate-200">
-          {result.body_fat_estimate.percentage}%{result.body_fat_estimate.range ? ` (${result.body_fat_estimate.range})` : ""} • {result.body_fat_estimate.confidence} confidence
-        </p>
+        <p className="mt-2 text-sm text-slate-200">{result.body_fat_estimate.percentage}%{result.body_fat_estimate.range ? ` (${result.body_fat_estimate.range})` : ""} • {result.body_fat_estimate.confidence} confidence</p>
       </section>
 
       <section className="card">
@@ -250,9 +253,7 @@ export function ResultCards({ result }: { result: VanityAdvisorResponse }) {
                 <span className="capitalize text-slate-200">{key.replaceAll("_", " ")}</span>
                 <span className="font-semibold text-slate-100">{value.toFixed(1)}/10</span>
               </div>
-              <div className="h-2 w-full rounded bg-slate-800">
-                <div className="h-2 rounded bg-indigo-500" style={{ width: `${Math.max(0, Math.min(100, value * 10))}%` }} />
-              </div>
+              <div className="h-2 w-full rounded bg-slate-800"><div className="h-2 rounded bg-indigo-500" style={{ width: `${Math.max(0, Math.min(100, value * 10))}%` }} /></div>
             </div>
           ))}
         </div>

@@ -176,8 +176,9 @@ export function UploadForm() {
         {error && <p className="rounded-md bg-rose-500/20 px-3 py-2 text-sm text-rose-200">{error}</p>}
 
         <div className="flex flex-wrap gap-3">
-          <button type="submit" disabled={loading} className="rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-600 disabled:opacity-60">
-            {loading ? "Generating preview..." : "Generate Free Preview"}
+          <button type="submit" disabled={loading} className="inline-flex items-center gap-2 rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-600 disabled:opacity-60">
+            {loading && <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-transparent" aria-hidden="true" />}
+            <span>{loading ? "Generating preview..." : "Generate Free Preview"}</span>
           </button>
 
           <button

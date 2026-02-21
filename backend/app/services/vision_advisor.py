@@ -40,13 +40,25 @@ Safety and limitations (non-negotiable):
 Consistency requirement:
 - For identical images, give very similar body-fat and numeric estimates (target ±1-2%). Be consistent and precise.
 
-Return strict JSON only matching the requested schema.
+Return strict JSON only matching the requested schema. Do not include markdown, prose outside JSON, comments, or code fences.
 """.strip()
 
 REQUIRED_DISCLAIMER = (
     "This is visual estimation only, not a substitute for DEXA/calipers/doctor. "
     "Consult professionals for health concerns."
 )
+
+def _parse_json_payload(raw_content: str) -> dict[str, Any]:
+    """Parse model output as JSON object only; reject non-JSON responses."""
+
+    content = (raw_content or "").strip()
+    if not content:
+        raise ValueError("Model returned empty content; expected valid JSON object.")
+
+    payload = json.loads(content)
+    if not isinstance(payload, dict):
+        raise ValueError("Model output must be a JSON object.")
+    return payload
 
 
 def _response_schema() -> dict[str, Any]:
@@ -216,5 +228,5 @@ class VisionAdvisorService:
             )
             content = completion.choices[0].message.content or "{}"
 
-        payload = json.loads(content)
+        payload = _parse_json_payload(content)
         return VanityAdvisorResponse.model_validate(payload)

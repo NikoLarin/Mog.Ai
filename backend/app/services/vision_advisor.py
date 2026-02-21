@@ -23,8 +23,7 @@ Required coverage:
 5) Skin quality and under-eye area
 6) Neck/shoulder line and posture
 7) Body proportions/frame and V-taper potential
-8) Style suggestions that enhance strengths
-9) Integrated body-fat estimate
+8) Integrated body-fat estimate
 
 Tone constraints:
 - Encouraging, motivational, and respectful.
@@ -77,7 +76,6 @@ def _response_schema() -> dict[str, Any]:
                 "body_fat_estimate",
                 "key_ratings",
                 "personalized_steps",
-                "style_tips",
                 "limitations",
             ],
             "properties": {
@@ -111,11 +109,6 @@ def _response_schema() -> dict[str, Any]:
                     "type": "array",
                     "items": {"type": "string"},
                     "minItems": 3,
-                },
-                "style_tips": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "minItems": 1,
                 },
                 "limitations": {
                     "type": "array",

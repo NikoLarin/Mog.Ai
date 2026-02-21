@@ -27,5 +27,4 @@ class VanityAdvisorResponse(BaseModel):
     body_fat_estimate: BodyFatEstimate
     key_ratings: dict[str, float] | None
     personalized_steps: list[str] = Field(min_length=3)
-    style_tips: list[str]
     limitations: list[str]

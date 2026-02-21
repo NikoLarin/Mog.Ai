@@ -13,7 +13,6 @@ export interface VanityAdvisorResponse {
   body_fat_estimate: BodyFatEstimate;
   key_ratings: Record<string, number> | null;
   personalized_steps: string[];
-  style_tips: string[];
   limitations: string[];
 }
 

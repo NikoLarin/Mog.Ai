@@ -87,6 +87,7 @@ def _scan_dir(scan_id: str) -> Path:
 @router.post("/scans/prepare", response_model=PreparedScanResponse)
 async def prepare_scan(
     images: list[UploadFile] = File(..., description="2-4 physique photos"),
+    email: str = Form(...),
     height_cm: float | None = Form(default=None),
     weight_kg: float | None = Form(default=None),
     height_ft: int | None = Form(default=None),
@@ -113,6 +114,7 @@ async def prepare_scan(
         height_in=height_in,
         weight_lbs=weight_lbs,
         age=age,
+        email=email,
         gender=gender,
         goals=goals,
     )
@@ -167,8 +169,14 @@ async def preview_scan(scan_id: str, settings: Settings = Depends(get_settings))
 
 @router.post("/payments/create-checkout", response_model=CreateCheckoutResponse)
 async def create_checkout(payload: CreateCheckoutRequest, settings: Settings = Depends(get_settings)) -> CreateCheckoutResponse:
-    if not _scan_dir(payload.scan_id).exists():
+    scan_folder = _scan_dir(payload.scan_id)
+    if not scan_folder.exists():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Prepared scan not found.")
+
+    try:
+        context = UserContext.model_validate_json((scan_folder / "context.json").read_text())
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Prepared scan context is invalid.") from exc
 
     stripe.api_key = settings.stripe_secret_key
 
@@ -178,7 +186,8 @@ async def create_checkout(payload: CreateCheckoutRequest, settings: Settings = D
             success_url=f"{settings.frontend_base_url}/scan/success?session_id={{CHECKOUT_SESSION_ID}}&scan_id={payload.scan_id}",
             cancel_url=f"{settings.frontend_base_url}/scan/cancel?scan_id={payload.scan_id}",
             client_reference_id=payload.scan_id,
-            metadata={"scan_id": payload.scan_id},
+            customer_email=context.email,
+            metadata={"scan_id": payload.scan_id, "email": context.email},
             line_items=[
                 {
                     "quantity": 1,

@@ -45,7 +45,6 @@ Output constraints:
 - Output ONLY valid JSON that strictly matches the provided schema.
 - No markdown, no code fences, no comments, no extra keys, no text outside JSON.
 - In limitations, include clear image-capture guidance for better accuracy (even lighting, neutral pose, consistent camera distance, front/side/back views).
-- key_ratings must always be populated with relevant metrics (never null/empty).
 """.strip()
 
 
@@ -101,7 +100,6 @@ def _response_schema() -> dict[str, Any]:
                 "strengths",
                 "areas_for_improvement",
                 "body_fat_estimate",
-                "key_ratings",
                 "personalized_steps",
                 "limitations",
             ],
@@ -127,10 +125,6 @@ def _response_schema() -> dict[str, Any]:
                         "range": {"type": ["string", "null"]},
                         "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
                     },
-                },
-                "key_ratings": {
-                    "type": "object",
-                    "additionalProperties": {"type": "number", "minimum": 0, "maximum": 10},
                 },
                 "personalized_steps": {
                     "type": "array",
@@ -206,6 +200,7 @@ class VisionAdvisorService:
             "height_in": context.height_in,
             "weight_lbs": context.weight_lbs,
             "age": context.age,
+            "email": context.email,
             "gender": context.gender,
             "goals": context.goals,
             "image_count": len(images),
@@ -246,6 +241,7 @@ class VisionAdvisorService:
             "height_in": context.height_in,
             "weight_lbs": context.weight_lbs,
             "age": context.age,
+            "email": context.email,
             "gender": context.gender,
             "goals": context.goals,
             "image_count": len(images),

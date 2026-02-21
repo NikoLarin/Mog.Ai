@@ -11,7 +11,6 @@ export interface VanityAdvisorResponse {
   strengths: string[];
   areas_for_improvement: string[];
   body_fat_estimate: BodyFatEstimate;
-  key_ratings: Record<string, number>;
   personalized_steps: string[];
   limitations: string[];
 }
@@ -24,6 +23,7 @@ export interface AnalyzeRequest {
   height_in?: string;
   weight_lbs?: string;
   age?: string;
+  email: string;
   gender?: string;
   goals?: string;
 }

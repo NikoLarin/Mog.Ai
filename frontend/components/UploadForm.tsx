@@ -19,6 +19,7 @@ export function UploadForm() {
   const [heightIn, setHeightIn] = useState("");
   const [weightLbs, setWeightLbs] = useState("");
   const [age, setAge] = useState("");
+  const [email, setEmail] = useState("");
   const [gender, setGender] = useState("");
   const [goals, setGoals] = useState("");
 
@@ -45,6 +46,11 @@ export function UploadForm() {
       return;
     }
 
+    if (!email.trim()) {
+      setError("Please enter an email so we can send your report copy.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -56,6 +62,7 @@ export function UploadForm() {
         height_in: unitSystem === "imperial" ? heightIn : undefined,
         weight_lbs: unitSystem === "imperial" ? weightLbs : undefined,
         age,
+        email: email.trim(),
         gender,
         goals
       });
@@ -156,6 +163,16 @@ export function UploadForm() {
 
         <textarea value={goals} onChange={(e) => setGoals(e.target.value)} placeholder="Goals" rows={3} className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
 
+        <input
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email (required for your report copy)"
+          className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+        />
+
+
         {error && <p className="rounded-md bg-rose-500/20 px-3 py-2 text-sm text-rose-200">{error}</p>}
 
         <div className="flex flex-wrap gap-3">
@@ -189,7 +206,7 @@ export function UploadForm() {
           <div className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3">
             <p className="text-sm font-semibold text-amber-200">{preview.hidden_insights_count}+ hidden weaknesses and fix protocols locked</p>
             <p className="mt-1 text-sm text-amber-100">{preview.tease_line}</p>
-            <p className="mt-2 text-xs text-amber-100/80">Unlock to view exact weak points, personalized correction steps, and full scoring breakdown.</p>
+            <p className="mt-2 text-xs text-amber-100/80">Unlock to view exact weak points, personalized correction steps, and get your full report copy sent to your email.</p>
           </div>
         </section>
       )}

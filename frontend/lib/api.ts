@@ -23,6 +23,7 @@ export async function prepareScan(payload: AnalyzeRequest): Promise<{ scan_id: s
   if (payload.height_in) formData.append("height_in", payload.height_in);
   if (payload.weight_lbs) formData.append("weight_lbs", payload.weight_lbs);
   if (payload.age) formData.append("age", payload.age);
+  formData.append("email", payload.email);
   if (payload.gender) formData.append("gender", payload.gender);
   if (payload.goals) formData.append("goals", payload.goals);
 

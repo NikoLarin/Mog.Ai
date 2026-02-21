@@ -244,20 +244,6 @@ export function ResultCards({ result }: { result: VanityAdvisorResponse }) {
         <p className="mt-2 text-sm text-slate-200">{result.body_fat_estimate.percentage}%{result.body_fat_estimate.range ? ` (${result.body_fat_estimate.range})` : ""} • {result.body_fat_estimate.confidence} confidence</p>
       </section>
 
-      <section className="card">
-        <h3 className="text-lg font-semibold">Key Ratings</h3>
-        <div className="mt-3 grid gap-2 md:grid-cols-2">
-          {Object.entries(result.key_ratings).map(([key, value]) => (
-            <div key={key} className="rounded-md border border-slate-700 px-3 py-2 text-sm">
-              <div className="mb-1 flex items-center justify-between">
-                <span className="capitalize text-slate-200">{key.replaceAll("_", " ")}</span>
-                <span className="font-semibold text-slate-100">{value.toFixed(1)}/10</span>
-              </div>
-              <div className="h-2 w-full rounded bg-slate-800"><div className="h-2 rounded bg-indigo-500" style={{ width: `${Math.max(0, Math.min(100, value * 10))}%` }} /></div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       <section className="card">
         <h3 className="text-lg font-semibold">Limitations</h3>

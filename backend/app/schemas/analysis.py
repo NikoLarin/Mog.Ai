@@ -12,6 +12,7 @@ class UserContext(BaseModel):
     height_in: int | None = Field(default=None, ge=0, le=11)
     weight_lbs: float | None = Field(default=None, ge=55, le=660)
     age: int | None = Field(default=None, ge=13, le=100)
+    email: str = Field(min_length=5, max_length=320)
     gender: str | None = None
     goals: str | None = Field(default=None, max_length=500)
 
@@ -40,7 +41,6 @@ class VanityAdvisorResponse(BaseModel):
                 "strengths",
                 "areas_for_improvement",
                 "body_fat_estimate",
-                "key_ratings",
                 "personalized_steps",
                 "limitations",
             ],
@@ -51,7 +51,6 @@ class VanityAdvisorResponse(BaseModel):
     strengths: list[str] = Field(min_length=4, max_length=7)
     areas_for_improvement: list[str] = Field(min_length=3)
     body_fat_estimate: BodyFatEstimate
-    key_ratings: dict[str, float]
     personalized_steps: list[str] = Field(min_length=3)
     limitations: list[str]
 

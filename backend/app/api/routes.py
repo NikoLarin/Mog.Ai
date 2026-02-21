@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import stripe
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
 from app.core.config import Settings, get_settings
 from app.schemas.analysis import (
@@ -86,7 +86,6 @@ def _scan_dir(scan_id: str) -> Path:
 
 @router.post("/scans/prepare", response_model=PreparedScanResponse)
 async def prepare_scan(
-    request: Request,
     images: list[UploadFile] = File(..., description="2-4 physique photos"),
     email: str | None = Form(default=None),
     height_cm: float | None = Form(default=None),
@@ -99,8 +98,6 @@ async def prepare_scan(
     goals: str | None = Form(default=None),
     settings: Settings = Depends(get_settings),
 ) -> PreparedScanResponse:
-    print(f"[CORS debug] Origin: {request.headers.get('origin')}")
-
     _validate_files(images, settings)
     normalized_height_cm, normalized_weight_kg = _coerce_metric_inputs(
         height_cm=height_cm,

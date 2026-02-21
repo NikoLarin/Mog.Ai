@@ -32,7 +32,7 @@ export default function SuccessPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Payment successful</h1>
-      {loading && <p className="text-sm text-slate-300">Running your full GPT-4o analysis...</p>}
+      {loading && <p className="text-sm text-slate-300">Running your full premium AI analysis...</p>}
       {error && <p className="rounded-md bg-rose-500/20 p-3 text-sm text-rose-100">{error}</p>}
       {result && <ResultCards result={result} />}
     </div>

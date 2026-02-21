@@ -1,4 +1,4 @@
-import type { AnalyzeRequest, VanityAdvisorResponse } from "@/types/analysis";
+import type { AnalyzeRequest, PreviewReportResponse, VanityAdvisorResponse } from "@/types/analysis";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
@@ -29,6 +29,12 @@ export async function prepareScan(payload: AnalyzeRequest): Promise<{ scan_id: s
   const response = await fetch(`${API_BASE}/api/v1/scans/prepare`, { method: "POST", body: formData });
   if (!response.ok) await parseError(response);
   return (await response.json()) as { scan_id: string; image_count: number; message: string };
+}
+
+export async function getPreview(scanId: string): Promise<PreviewReportResponse> {
+  const response = await fetch(`${API_BASE}/api/v1/scans/${scanId}/preview`);
+  if (!response.ok) await parseError(response);
+  return (await response.json()) as PreviewReportResponse;
 }
 
 export async function createCheckout(scanId: string): Promise<{ session_id: string; publishable_key: string }> {

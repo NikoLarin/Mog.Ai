@@ -6,7 +6,7 @@ from fastapi import UploadFile
 from openai import APIStatusError, OpenAI, RateLimitError
 
 from app.core.config import Settings
-from app.schemas.analysis import UserContext, VanityAdvisorResponse
+from app.schemas.analysis import PreviewReportResponse, UserContext, VanityAdvisorResponse
 
 SYSTEM_PROMPT = """
 You are Vanity AI Advisor, a confidence-building glow-up coach with positive mog energy.
@@ -60,6 +60,35 @@ def _parse_json_payload(raw_content: str) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError("Model output must be a JSON object.")
     return payload
+
+
+
+PREVIEW_PROMPT = """
+You are an AI aesthetic preview algorithm.
+Generate a free-preview report that is positive and motivating but intentionally partial:
+- Show only top strengths and a short positive summary.
+- Do NOT provide weaknesses, corrective methods, or full plan details.
+- Tease that deeper weaknesses, precise fixes, and tailored execution steps are locked in the full report.
+Return strict JSON only.
+""".strip()
+
+
+def _preview_schema() -> dict[str, Any]:
+    return {
+        "name": "preview_report_response",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["summary", "strengths", "hidden_insights_count", "tease_line"],
+            "properties": {
+                "summary": {"type": "string"},
+                "strengths": {"type": "array", "items": {"type": "string"}, "minItems": 3, "maxItems": 5},
+                "hidden_insights_count": {"type": "integer", "minimum": 3},
+                "tease_line": {"type": "string"},
+            },
+        },
+    }
 
 
 def _response_schema() -> dict[str, Any]:
@@ -157,8 +186,8 @@ class VisionAdvisorService:
             images.append((payload, file.content_type or "image/jpeg"))
         return await self.analyze_raw_images(images=images, context=context)
 
-    async def analyze_raw_images(self, images: Sequence[tuple[bytes, str]], context: UserContext) -> VanityAdvisorResponse:
-        image_content = []
+    def _build_image_content(self, images: Sequence[tuple[bytes, str]]) -> list[dict[str, Any]]:
+        image_content: list[dict[str, Any]] = []
         for payload, media_type in images:
             encoded = base64.b64encode(payload).decode("utf-8")
             image_content.append(
@@ -167,6 +196,50 @@ class VisionAdvisorService:
                     "image_url": {"url": f"data:{media_type};base64,{encoded}", "detail": "low"},
                 }
             )
+        return image_content
+
+
+    async def preview_raw_images(self, images: Sequence[tuple[bytes, str]], context: UserContext) -> PreviewReportResponse:
+        image_content = self._build_image_content(images)
+        user_context = {
+            "height_cm": context.height_cm,
+            "weight_kg": context.weight_kg,
+            "height_ft": context.height_ft,
+            "height_in": context.height_in,
+            "weight_lbs": context.weight_lbs,
+            "age": context.age,
+            "gender": context.gender,
+            "goals": context.goals,
+            "image_count": len(images),
+        }
+
+        messages = [
+            {"role": "system", "content": PREVIEW_PROMPT},
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": (
+                            "Generate free preview strengths only. Keep weaknesses and methods hidden for paid unlock. "
+                            f"Context: {user_context}."
+                        ),
+                    },
+                    *image_content,
+                ],
+            },
+        ]
+
+        completion = self._create_completion_with_model_fallback(
+            messages=messages,
+            response_format={"type": "json_schema", "json_schema": _preview_schema()},
+        )
+        content = completion.choices[0].message.content or "{}"
+        payload = _parse_json_payload(content)
+        return PreviewReportResponse.model_validate(payload)
+
+    async def analyze_raw_images(self, images: Sequence[tuple[bytes, str]], context: UserContext) -> VanityAdvisorResponse:
+        image_content = self._build_image_content(images)
 
         user_context = {
             "height_cm": context.height_cm,

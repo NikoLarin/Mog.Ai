@@ -13,6 +13,7 @@ from app.schemas.analysis import (
     CreateCheckoutRequest,
     CreateCheckoutResponse,
     PreparedScanResponse,
+    PreviewReportResponse,
     UserContext,
     VanityAdvisorResponse,
 )
@@ -143,6 +144,25 @@ async def prepare_scan(
         raise
 
     return PreparedScanResponse(scan_id=scan_id, image_count=len(images), message="Preview ready. Unlock analysis to continue.")
+
+
+@router.get("/scans/{scan_id}/preview", response_model=PreviewReportResponse)
+async def preview_scan(scan_id: str, settings: Settings = Depends(get_settings)) -> PreviewReportResponse:
+    folder = _scan_dir(scan_id)
+    if not folder.exists():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Prepared scan not found or expired.")
+
+    context = UserContext.model_validate_json((folder / "context.json").read_text())
+    images_info = json.loads((folder / "images.json").read_text())
+
+    images: list[tuple[bytes, str]] = []
+    for item in images_info:
+        raw = (folder / item["filename"]).read_bytes()
+        images.append((raw, item["content_type"]))
+
+    service = VisionAdvisorService(settings)
+    return await service.preview_raw_images(images=images, context=context)
+
 
 
 @router.post("/payments/create-checkout", response_model=CreateCheckoutResponse)

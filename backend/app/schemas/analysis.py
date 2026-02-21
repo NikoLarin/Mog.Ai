@@ -30,6 +30,13 @@ class VanityAdvisorResponse(BaseModel):
     limitations: list[str]
 
 
+class PreviewReportResponse(BaseModel):
+    summary: str
+    strengths: list[str] = Field(min_length=3, max_length=5)
+    hidden_insights_count: int = Field(ge=3)
+    tease_line: str
+
+
 class PreparedScanResponse(BaseModel):
     scan_id: str
     image_count: int

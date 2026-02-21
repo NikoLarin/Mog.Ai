@@ -27,3 +27,11 @@ export interface AnalyzeRequest {
   gender?: string;
   goals?: string;
 }
+
+
+export interface PreviewReportResponse {
+  summary: string;
+  strengths: string[];
+  hidden_insights_count: number;
+  tease_line: string;
+}

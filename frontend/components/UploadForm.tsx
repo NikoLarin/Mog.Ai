@@ -3,7 +3,8 @@
 import { loadStripe } from "@stripe/stripe-js";
 import { useMemo, useState } from "react";
 
-import { createCheckout, prepareScan } from "@/lib/api";
+import { createCheckout, getPreview, prepareScan } from "@/lib/api";
+import type { PreviewReportResponse } from "@/types/analysis";
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -22,7 +23,7 @@ export function UploadForm() {
   const [goals, setGoals] = useState("");
 
   const [scanId, setScanId] = useState<string | null>(null);
-  const [previewMessage, setPreviewMessage] = useState<string | null>(null);
+  const [preview, setPreview] = useState<PreviewReportResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +34,7 @@ export function UploadForm() {
     const incoming = Array.from(event.target.files ?? []).filter((file) => ACCEPTED_TYPES.includes(file.type));
     setFiles(incoming.slice(0, 4));
     setScanId(null);
-    setPreviewMessage(null);
+    setPreview(null);
     setError(null);
   };
 
@@ -59,7 +60,8 @@ export function UploadForm() {
         goals
       });
       setScanId(prepared.scan_id);
-      setPreviewMessage(prepared.message);
+      const previewData = await getPreview(prepared.scan_id);
+      setPreview(previewData);
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : "Something went wrong.");
     } finally {
@@ -90,7 +92,7 @@ export function UploadForm() {
       <form className="card space-y-4" onSubmit={onPrepare}>
         <div>
           <h2 className="text-xl font-semibold">Upload photos</h2>
-          <p className="mt-1 text-sm text-slate-300">Upload 2–4 photos for free preview. Full GPT-4o analysis unlocks after payment.</p>
+          <p className="mt-1 text-sm text-slate-300">Get your free preview now. Unlock your full personalized report for a one-time $4.99.</p>
         </div>
 
         <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-600 p-6 text-center hover:border-slate-400">
@@ -113,12 +115,8 @@ export function UploadForm() {
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Units</p>
           <div className="inline-flex rounded-md border border-slate-700 p-1 text-sm">
-            <button type="button" onClick={() => setUnitSystem("metric")} className={`rounded px-3 py-1 ${unitSystem === "metric" ? "bg-indigo-500 text-white" : "text-slate-300"}`}>
-              Metric
-            </button>
-            <button type="button" onClick={() => setUnitSystem("imperial")} className={`rounded px-3 py-1 ${unitSystem === "imperial" ? "bg-indigo-500 text-white" : "text-slate-300"}`}>
-              Imperial
-            </button>
+            <button type="button" onClick={() => setUnitSystem("metric")} className={`rounded px-3 py-1 ${unitSystem === "metric" ? "bg-indigo-500 text-white" : "text-slate-300"}`}>Metric</button>
+            <button type="button" onClick={() => setUnitSystem("imperial")} className={`rounded px-3 py-1 ${unitSystem === "imperial" ? "bg-indigo-500 text-white" : "text-slate-300"}`}>Imperial</button>
           </div>
         </div>
 
@@ -148,11 +146,10 @@ export function UploadForm() {
         <textarea value={goals} onChange={(e) => setGoals(e.target.value)} placeholder="Goals" rows={3} className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
 
         {error && <p className="rounded-md bg-rose-500/20 px-3 py-2 text-sm text-rose-200">{error}</p>}
-        {previewMessage && <p className="rounded-md bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100">{previewMessage}</p>}
 
         <div className="flex flex-wrap gap-3">
           <button type="submit" disabled={loading} className="rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-600 disabled:opacity-60">
-            {loading ? "Preparing..." : "Prepare Free Preview"}
+            {loading ? "Generating preview..." : "Generate Free Preview"}
           </button>
 
           <button
@@ -161,10 +158,30 @@ export function UploadForm() {
             onClick={onCheckout}
             className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {checkoutLoading ? "Redirecting..." : "Unlock Analysis – $4.99"}
+            {checkoutLoading ? "Redirecting..." : "Unlock Full Report – $4.99"}
           </button>
         </div>
       </form>
+
+      {preview && (
+        <section className="card">
+          <h3 className="text-lg font-semibold">Free Preview</h3>
+          <p className="mt-2 text-sm text-slate-100">{preview.summary}</p>
+
+          <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-emerald-300">Top strengths detected</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-100">
+            {preview.strengths.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+
+          <div className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3">
+            <p className="text-sm font-semibold text-amber-200">{preview.hidden_insights_count}+ hidden weaknesses and fix protocols locked</p>
+            <p className="mt-1 text-sm text-amber-100">{preview.tease_line}</p>
+            <p className="mt-2 text-xs text-amber-100/80">Unlock to view exact weak points, personalized correction steps, and full scoring breakdown.</p>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

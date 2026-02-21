@@ -87,7 +87,7 @@ def _scan_dir(scan_id: str) -> Path:
 @router.post("/scans/prepare", response_model=PreparedScanResponse)
 async def prepare_scan(
     images: list[UploadFile] = File(..., description="2-4 physique photos"),
-    email: str = Form(...),
+    email: str | None = Form(default=None),
     height_cm: float | None = Form(default=None),
     weight_kg: float | None = Form(default=None),
     height_ft: int | None = Form(default=None),
@@ -181,14 +181,13 @@ async def create_checkout(payload: CreateCheckoutRequest, settings: Settings = D
     stripe.api_key = settings.stripe_secret_key
 
     try:
-        session = stripe.checkout.Session.create(
-            mode="payment",
-            success_url=f"{settings.frontend_base_url}/scan/success?session_id={{CHECKOUT_SESSION_ID}}&scan_id={payload.scan_id}",
-            cancel_url=f"{settings.frontend_base_url}/scan/cancel?scan_id={payload.scan_id}",
-            client_reference_id=payload.scan_id,
-            customer_email=context.email,
-            metadata={"scan_id": payload.scan_id, "email": context.email},
-            line_items=[
+        checkout_payload: dict[str, object] = {
+            "mode": "payment",
+            "success_url": f"{settings.frontend_base_url}/scan/success?session_id={{CHECKOUT_SESSION_ID}}&scan_id={payload.scan_id}",
+            "cancel_url": f"{settings.frontend_base_url}/scan/cancel?scan_id={payload.scan_id}",
+            "client_reference_id": payload.scan_id,
+            "metadata": {"scan_id": payload.scan_id},
+            "line_items": [
                 {
                     "quantity": 1,
                     "price_data": {
@@ -198,7 +197,12 @@ async def create_checkout(payload: CreateCheckoutRequest, settings: Settings = D
                     },
                 }
             ],
-        )
+        }
+        if context.email:
+            checkout_payload["customer_email"] = context.email
+            checkout_payload["metadata"] = {"scan_id": payload.scan_id, "email": context.email}
+
+        session = stripe.checkout.Session.create(**checkout_payload)
     except Exception as exc:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Stripe checkout creation failed: {exc}") from exc
 

@@ -23,7 +23,6 @@ export interface AnalyzeRequest {
   height_in?: string;
   weight_lbs?: string;
   age?: string;
-  email: string;
   gender?: string;
   goals?: string;
 }

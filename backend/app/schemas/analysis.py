@@ -12,7 +12,7 @@ class UserContext(BaseModel):
     height_in: int | None = Field(default=None, ge=0, le=11)
     weight_lbs: float | None = Field(default=None, ge=55, le=660)
     age: int | None = Field(default=None, ge=13, le=100)
-    email: str = Field(min_length=5, max_length=320)
+    email: str | None = Field(default=None, min_length=5, max_length=320)
     gender: str | None = None
     goals: str | None = Field(default=None, max_length=500)
 

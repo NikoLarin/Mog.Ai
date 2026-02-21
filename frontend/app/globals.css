@@ -13,3 +13,7 @@ body {
 .card {
   @apply rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg shadow-black/20;
 }
+
+.glow-card {
+  @apply rounded-xl border border-indigo-700/40 bg-indigo-900/20 p-4;
+}

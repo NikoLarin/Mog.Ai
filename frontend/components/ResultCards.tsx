@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+
 import type { VanityAdvisorResponse } from "@/types/analysis";
 
 type PlaybookItem = {
@@ -269,8 +271,15 @@ function downloadPdfReport(result: VanityAdvisorResponse, playbook: PlaybookItem
   URL.revokeObjectURL(url);
 }
 
-export function ResultCards({ result }: { result: VanityAdvisorResponse }) {
+export function ResultCards({ result, autoDownload = false }: { result: VanityAdvisorResponse; autoDownload?: boolean }) {
   const playbook = getPlaybook(result.areas_for_improvement);
+  const hasAutoDownloaded = useRef(false);
+
+  useEffect(() => {
+    if (!autoDownload || hasAutoDownloaded.current) return;
+    hasAutoDownloaded.current = true;
+    downloadPdfReport(result, playbook);
+  }, [autoDownload, playbook, result]);
 
   return (
     <div className="mt-8 space-y-6">

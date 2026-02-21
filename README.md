@@ -49,6 +49,20 @@ flowchart LR
 
 See `.env.example` for all required variables, including `OPENAI_MODEL_FALLBACK` used when the primary model is rate-limited or returns 5xx.
 
+
+### Frontend API URL
+
+Set the frontend backend origin using:
+
+- `NEXT_PUBLIC_BACKEND_URL` (preferred)
+
+Backward-compatible fallbacks are still supported in code:
+
+- `NEXT_PUBLIC_API_BASE_URL`
+- `NEXT_PUBLIC_API_URL`
+
+If none are set, frontend defaults to `http://localhost:8000` for local development.
+
 ## Run backend locally
 
 ```bash

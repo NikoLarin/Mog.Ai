@@ -16,7 +16,7 @@ class UserContext(BaseModel):
 
 class BodyFatEstimate(BaseModel):
     percentage: float = Field(ge=3, le=60)
-    range: str | None = None
+    range: str | None
     confidence: Literal["high", "medium", "low"]
 
 
@@ -25,7 +25,7 @@ class VanityAdvisorResponse(BaseModel):
     strengths: list[str] = Field(min_length=4, max_length=7)
     areas_for_improvement: list[str] = Field(min_length=3)
     body_fat_estimate: BodyFatEstimate
-    key_ratings: dict[str, float] | None = None
+    key_ratings: dict[str, float] | None
     personalized_roadmap: list[str] = Field(min_length=3)
     style_tips: list[str]
     limitations: list[str]

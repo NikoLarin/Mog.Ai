@@ -69,6 +69,7 @@ def _response_schema() -> dict[str, Any]:
                 "strengths",
                 "areas_for_improvement",
                 "body_fat_estimate",
+                "key_ratings",
                 "personalized_roadmap",
                 "style_tips",
                 "limitations",
@@ -89,7 +90,7 @@ def _response_schema() -> dict[str, Any]:
                 "body_fat_estimate": {
                     "type": "object",
                     "additionalProperties": False,
-                    "required": ["percentage", "confidence"],
+                    "required": ["percentage", "range", "confidence"],
                     "properties": {
                         "percentage": {"type": "number", "minimum": 3, "maximum": 60},
                         "range": {"type": ["string", "null"]},

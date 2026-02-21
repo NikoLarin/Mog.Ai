@@ -35,6 +35,17 @@ app.add_middleware(
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[origin.strip() for origin in settings.allowed_origins.split(",")],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(_: Request, exc: RateLimitExceeded) -> JSONResponse:

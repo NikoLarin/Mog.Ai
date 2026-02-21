@@ -182,34 +182,64 @@ function escapePdfText(input: string): string {
 
 function buildSimplePdf(lines: string[]): Uint8Array {
   const wrappedLines = lines.flatMap((line) => wrapPdfLine(line));
-  const safeLines = wrappedLines.slice(0, 120);
-  const content = safeLines
-    .map((line, idx) => `BT /F1 11 Tf 50 ${780 - idx * 14} Td (${escapePdfText(line)}) Tj ET`)
-    .join("\n");
+  const safeLines = wrappedLines.slice(0, 360);
 
-  const objects = [
-    "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj",
-    "2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj",
-    "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj",
-    "4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj",
-    `5 0 obj << /Length ${content.length} >> stream\n${content}\nendstream endobj`
-  ];
+  const linesPerPage = 48;
+  const chunks: string[][] = [];
+  for (let i = 0; i < safeLines.length; i += linesPerPage) {
+    chunks.push(safeLines.slice(i, i + linesPerPage));
+  }
+  if (chunks.length === 0) chunks.push([]);
+
+  let nextId = 1;
+  const catalogId = nextId++;
+  const pagesId = nextId++;
+  const fontId = nextId++;
+
+  const objects: string[] = [];
+  const pageIds: number[] = [];
+
+  objects.push(`${fontId} 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj`);
+
+  for (const chunk of chunks) {
+    const pageId = nextId++;
+    const contentId = nextId++;
+    pageIds.push(pageId);
+
+    const content = chunk
+      .map((line, idx) => `BT /F1 11 Tf 50 ${770 - idx * 15} Td (${escapePdfText(line)}) Tj ET`)
+      .join("\n");
+
+    objects.push(`${contentId} 0 obj << /Length ${content.length} >> stream\n${content}\nendstream endobj`);
+    objects.push(
+      `${pageId} 0 obj << /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${fontId} 0 R >> >> /Contents ${contentId} 0 R >> endobj`
+    );
+  }
+
+  const kids = pageIds.map((id) => `${id} 0 R`).join(" ");
+  objects.push(`${pagesId} 0 obj << /Type /Pages /Kids [${kids}] /Count ${pageIds.length} >> endobj`);
+  objects.push(`${catalogId} 0 obj << /Type /Catalog /Pages ${pagesId} 0 R >> endobj`);
+
+  const sortedObjects = objects
+    .map((obj) => ({ obj, id: Number.parseInt(obj.split(" ", 1)[0] ?? "0", 10) }))
+    .sort((a, b) => a.id - b.id)
+    .map((entry) => entry.obj);
 
   let body = "%PDF-1.4\n";
   const offsets: number[] = [0];
-  for (const obj of objects) {
+  for (const obj of sortedObjects) {
     offsets.push(body.length);
     body += `${obj}\n`;
   }
 
   const xrefStart = body.length;
-  body += `xref\n0 ${objects.length + 1}\n`;
+  body += `xref\n0 ${sortedObjects.length + 1}\n`;
   body += "0000000000 65535 f \n";
-  for (let i = 1; i <= objects.length; i += 1) {
+  for (let i = 1; i <= sortedObjects.length; i += 1) {
     body += `${offsets[i].toString().padStart(10, "0")} 00000 n \n`;
   }
 
-  body += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
+  body += `trailer << /Size ${sortedObjects.length + 1} /Root ${catalogId} 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
   return new TextEncoder().encode(body);
 }
 

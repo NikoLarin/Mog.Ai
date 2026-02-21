@@ -45,6 +45,7 @@ Output constraints:
 - Output ONLY valid JSON that strictly matches the provided schema.
 - No markdown, no code fences, no comments, no extra keys, no text outside JSON.
 - In limitations, include clear image-capture guidance for better accuracy (even lighting, neutral pose, consistent camera distance, front/side/back views).
+- key_ratings must always be populated with at least 4 relevant metrics (never null/empty).
 """.strip()
 
 
@@ -128,8 +129,9 @@ def _response_schema() -> dict[str, Any]:
                     },
                 },
                 "key_ratings": {
-                    "type": ["object", "null"],
+                    "type": "object",
                     "additionalProperties": {"type": "number", "minimum": 0, "maximum": 10},
+                    "minProperties": 4,
                 },
                 "personalized_steps": {
                     "type": "array",

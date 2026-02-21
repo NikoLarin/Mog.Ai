@@ -247,7 +247,7 @@ export function ResultCards({ result }: { result: VanityAdvisorResponse }) {
       <section className="card">
         <h3 className="text-lg font-semibold">Key Ratings</h3>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
-          {Object.entries(result.key_ratings ?? {}).map(([key, value]) => (
+          {Object.entries(result.key_ratings).map(([key, value]) => (
             <div key={key} className="rounded-md border border-slate-700 px-3 py-2 text-sm">
               <div className="mb-1 flex items-center justify-between">
                 <span className="capitalize text-slate-200">{key.replaceAll("_", " ")}</span>

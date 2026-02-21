@@ -151,11 +151,16 @@ class VisionAdvisorService:
             raise
 
     async def analyze(self, files: Sequence[UploadFile], context: UserContext) -> VanityAdvisorResponse:
-        image_content = []
+        images: list[tuple[bytes, str]] = []
         for file in files:
             payload = await file.read()
+            images.append((payload, file.content_type or "image/jpeg"))
+        return await self.analyze_raw_images(images=images, context=context)
+
+    async def analyze_raw_images(self, images: Sequence[tuple[bytes, str]], context: UserContext) -> VanityAdvisorResponse:
+        image_content = []
+        for payload, media_type in images:
             encoded = base64.b64encode(payload).decode("utf-8")
-            media_type = file.content_type or "image/jpeg"
             image_content.append(
                 {
                     "type": "image_url",
@@ -172,7 +177,7 @@ class VisionAdvisorService:
             "age": context.age,
             "gender": context.gender,
             "goals": context.goals,
-            "image_count": len(files),
+            "image_count": len(images),
         }
 
         messages = [

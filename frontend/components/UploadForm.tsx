@@ -1,10 +1,9 @@
 "use client";
 
+import { loadStripe } from "@stripe/stripe-js";
 import { useMemo, useState } from "react";
 
-import { ResultCards } from "@/components/ResultCards";
-import { analyzePhotos } from "@/lib/api";
-import type { VanityAdvisorResponse } from "@/types/analysis";
+import { createCheckout, prepareScan } from "@/lib/api";
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -13,29 +12,32 @@ type UnitSystem = "metric" | "imperial";
 export function UploadForm() {
   const [files, setFiles] = useState<File[]>([]);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("metric");
-
   const [heightCm, setHeightCm] = useState("");
   const [weightKg, setWeightKg] = useState("");
   const [heightFt, setHeightFt] = useState("");
   const [heightIn, setHeightIn] = useState("");
   const [weightLbs, setWeightLbs] = useState("");
-
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [goals, setGoals] = useState("");
+
+  const [scanId, setScanId] = useState<string | null>(null);
+  const [previewMessage, setPreviewMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<VanityAdvisorResponse | null>(null);
 
   const previews = useMemo(() => files.map((file) => ({ file, url: URL.createObjectURL(file) })), [files]);
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const incoming = Array.from(event.target.files ?? []).filter((file) => ACCEPTED_TYPES.includes(file.type));
     setFiles(incoming.slice(0, 4));
+    setScanId(null);
+    setPreviewMessage(null);
     setError(null);
   };
 
-  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const onPrepare = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (files.length < 2) {
       setError("Please upload at least 2 photos (front + side minimum).");
@@ -44,9 +46,8 @@ export function UploadForm() {
 
     setLoading(true);
     setError(null);
-
     try {
-      const analysis = await analyzePhotos({
+      const prepared = await prepareScan({
         images: files,
         height_cm: unitSystem === "metric" ? heightCm : undefined,
         weight_kg: unitSystem === "metric" ? weightKg : undefined,
@@ -57,7 +58,8 @@ export function UploadForm() {
         gender,
         goals
       });
-      setResult(analysis);
+      setScanId(prepared.scan_id);
+      setPreviewMessage(prepared.message);
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : "Something went wrong.");
     } finally {
@@ -65,12 +67,30 @@ export function UploadForm() {
     }
   };
 
+  const onCheckout = async () => {
+    if (!scanId) return;
+
+    setCheckoutLoading(true);
+    setError(null);
+    try {
+      const checkout = await createCheckout(scanId);
+      const stripe = await loadStripe(checkout.publishable_key);
+      if (!stripe) throw new Error("Stripe failed to initialize.");
+
+      const { error: stripeError } = await stripe.redirectToCheckout({ sessionId: checkout.session_id });
+      if (stripeError?.message) throw new Error(stripeError.message);
+    } catch (checkoutError) {
+      setError(checkoutError instanceof Error ? checkoutError.message : "Unable to start checkout.");
+      setCheckoutLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <form className="card space-y-4" onSubmit={onSubmit}>
+      <form className="card space-y-4" onSubmit={onPrepare}>
         <div>
           <h2 className="text-xl font-semibold">Upload photos</h2>
-          <p className="mt-1 text-sm text-slate-300">2–4 photos: front, side, back, and optional flexed shot.</p>
+          <p className="mt-1 text-sm text-slate-300">Upload 2–4 photos for free preview. Full GPT-4o analysis unlocks after payment.</p>
         </div>
 
         <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-600 p-6 text-center hover:border-slate-400">
@@ -93,19 +113,11 @@ export function UploadForm() {
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Units</p>
           <div className="inline-flex rounded-md border border-slate-700 p-1 text-sm">
-            <button
-              type="button"
-              onClick={() => setUnitSystem("metric")}
-              className={`rounded px-3 py-1 ${unitSystem === "metric" ? "bg-indigo-500 text-white" : "text-slate-300"}`}
-            >
-              Metric (cm / kg)
+            <button type="button" onClick={() => setUnitSystem("metric")} className={`rounded px-3 py-1 ${unitSystem === "metric" ? "bg-indigo-500 text-white" : "text-slate-300"}`}>
+              Metric
             </button>
-            <button
-              type="button"
-              onClick={() => setUnitSystem("imperial")}
-              className={`rounded px-3 py-1 ${unitSystem === "imperial" ? "bg-indigo-500 text-white" : "text-slate-300"}`}
-            >
-              Imperial (ft/in / lbs)
+            <button type="button" onClick={() => setUnitSystem("imperial")} className={`rounded px-3 py-1 ${unitSystem === "imperial" ? "bg-indigo-500 text-white" : "text-slate-300"}`}>
+              Imperial
             </button>
           </div>
         </div>
@@ -125,11 +137,7 @@ export function UploadForm() {
           </div>
         )}
 
-        <select
-          value={gender}
-          onChange={(e) => setGender(e.target.value)}
-          className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
-        >
+        <select value={gender} onChange={(e) => setGender(e.target.value)} className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100">
           <option value="">Gender (optional)</option>
           <option value="male">Male</option>
           <option value="female">Female</option>
@@ -137,28 +145,26 @@ export function UploadForm() {
           <option value="prefer-not-to-say">Prefer not to say</option>
         </select>
 
-        <textarea
-          value={goals}
-          onChange={(e) => setGoals(e.target.value)}
-          placeholder="Goals (e.g., leaner face, stronger neck posture, better eyebrow density)"
-          rows={4}
-          className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-        />
+        <textarea value={goals} onChange={(e) => setGoals(e.target.value)} placeholder="Goals" rows={3} className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
 
         {error && <p className="rounded-md bg-rose-500/20 px-3 py-2 text-sm text-rose-200">{error}</p>}
+        {previewMessage && <p className="rounded-md bg-emerald-500/20 px-3 py-2 text-sm text-emerald-100">{previewMessage}</p>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {loading ? "Analyzing..." : "Analyze my photos"}
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button type="submit" disabled={loading} className="rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-600 disabled:opacity-60">
+            {loading ? "Preparing..." : "Prepare Free Preview"}
+          </button>
 
-        <p className="text-xs text-slate-400">v2: progress photo timeline + change tracking will be added later.</p>
+          <button
+            type="button"
+            disabled={!scanId || checkoutLoading}
+            onClick={onCheckout}
+            className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {checkoutLoading ? "Redirecting..." : "Unlock Analysis – $4.99"}
+          </button>
+        </div>
       </form>
-
-      {result ? <ResultCards result={result} /> : null}
     </div>
   );
 }

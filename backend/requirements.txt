@@ -5,3 +5,4 @@ openai==1.65.2
 pydantic-settings==2.8.1
 slowapi==0.1.9
 Pillow==11.1.0
+stripe==11.1.1

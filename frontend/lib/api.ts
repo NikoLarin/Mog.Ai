@@ -2,9 +2,19 @@ import type { AnalyzeRequest, VanityAdvisorResponse } from "@/types/analysis";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
-export async function analyzePhotos(payload: AnalyzeRequest): Promise<VanityAdvisorResponse> {
-  const formData = new FormData();
+async function parseError(response: Response): Promise<never> {
+  let message = "Request failed.";
+  try {
+    const error = (await response.json()) as { detail?: string };
+    if (error.detail) message = error.detail;
+  } catch {
+    // keep fallback
+  }
+  throw new Error(message);
+}
 
+export async function prepareScan(payload: AnalyzeRequest): Promise<{ scan_id: string; image_count: number; message: string }> {
+  const formData = new FormData();
   payload.images.forEach((file) => formData.append("images", file));
 
   if (payload.height_cm) formData.append("height_cm", payload.height_cm);
@@ -16,21 +26,27 @@ export async function analyzePhotos(payload: AnalyzeRequest): Promise<VanityAdvi
   if (payload.gender) formData.append("gender", payload.gender);
   if (payload.goals) formData.append("goals", payload.goals);
 
-  const response = await fetch(`${API_BASE}/api/v1/analyze`, {
+  const response = await fetch(`${API_BASE}/api/v1/scans/prepare`, { method: "POST", body: formData });
+  if (!response.ok) await parseError(response);
+  return (await response.json()) as { scan_id: string; image_count: number; message: string };
+}
+
+export async function createCheckout(scanId: string): Promise<{ session_id: string; publishable_key: string }> {
+  const response = await fetch(`${API_BASE}/api/v1/payments/create-checkout`, {
     method: "POST",
-    body: formData
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ scan_id: scanId })
   });
+  if (!response.ok) await parseError(response);
+  return (await response.json()) as { session_id: string; publishable_key: string };
+}
 
-  if (!response.ok) {
-    let message = "Failed to analyze photos.";
-    try {
-      const error = (await response.json()) as { detail?: string };
-      if (error.detail) message = error.detail;
-    } catch {
-      // keep fallback message
-    }
-    throw new Error(message);
-  }
-
+export async function analyzePaid(scanId: string, stripeSessionId: string): Promise<VanityAdvisorResponse> {
+  const response = await fetch(`${API_BASE}/api/v1/analyze-paid`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ scan_id: scanId, stripe_session_id: stripeSessionId })
+  });
+  if (!response.ok) await parseError(response);
   return (await response.json()) as VanityAdvisorResponse;
 }

@@ -80,3 +80,11 @@ npm run dev
   - structured result cards for body-fat estimate, eyebrow/neck/symmetry insights, roadmap, and safety notes.
 - v2 placeholder note for progress photo timeline/tracking.
 - CORS + request rate limiting + health endpoint.
+
+
+## Pay-per-scan flow (Stripe Checkout)
+
+- `POST /api/v1/scans/prepare`: stores uploaded photos + metadata as a preview scan.
+- `POST /api/v1/payments/create-checkout`: creates one-time Stripe Checkout session ($4.99 by default).
+- `POST /api/v1/analyze-paid`: verifies paid Stripe session and runs full GPT-4o analysis.
+- Frontend redirects to Stripe Checkout, then `/scan/success` triggers paid analysis.

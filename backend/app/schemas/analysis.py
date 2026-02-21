@@ -28,3 +28,23 @@ class VanityAdvisorResponse(BaseModel):
     key_ratings: dict[str, float] | None
     personalized_steps: list[str] = Field(min_length=3)
     limitations: list[str]
+
+
+class PreparedScanResponse(BaseModel):
+    scan_id: str
+    image_count: int
+    message: str
+
+
+class CreateCheckoutRequest(BaseModel):
+    scan_id: str
+
+
+class CreateCheckoutResponse(BaseModel):
+    session_id: str
+    publishable_key: str
+
+
+class AnalyzePaidRequest(BaseModel):
+    scan_id: str
+    stripe_session_id: str

@@ -1,0 +1,40 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+
+import { ResultCards } from "@/components/ResultCards";
+import { analyzePaid } from "@/lib/api";
+import type { VanityAdvisorResponse } from "@/types/analysis";
+
+export default function SuccessPage() {
+  const params = useSearchParams();
+  const sessionId = params.get("session_id");
+  const scanId = params.get("scan_id");
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<VanityAdvisorResponse | null>(null);
+
+  useEffect(() => {
+    if (!sessionId || !scanId) {
+      setError("Missing payment or scan context.");
+      setLoading(false);
+      return;
+    }
+
+    analyzePaid(scanId, sessionId)
+      .then((data) => setResult(data))
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to run analysis."))
+      .finally(() => setLoading(false));
+  }, [scanId, sessionId]);
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Payment successful</h1>
+      {loading && <p className="text-sm text-slate-300">Running your full GPT-4o analysis...</p>}
+      {error && <p className="rounded-md bg-rose-500/20 p-3 text-sm text-rose-100">{error}</p>}
+      {result && <ResultCards result={result} />}
+    </div>
+  );
+}

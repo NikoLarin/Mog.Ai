@@ -1,33 +1,22 @@
 export type Confidence = "low" | "medium" | "high";
 
-export interface Insight {
-  score: number | null;
-  confidence: Confidence;
-  observations: string[];
-  quick_wins: string[];
-  cautions: string[];
-}
-
 export interface BodyFatEstimate {
-  bf_estimate_percent: number | null;
+  percentage: number | null;
   confidence: Confidence;
-  estimated_range: string;
-  rationale: string[];
-}
-
-export interface SafetyAndLimitations {
-  disclaimer: string;
-  safety_notes: string[];
-  limitations: string[];
+  range: string;
 }
 
 export interface VanityAdvisorResponse {
-  bf_estimate: BodyFatEstimate;
-  eyebrow: Insight;
-  neck_and_posture: Insight;
-  symmetry_and_skin: Insight;
-  glow_up_roadmap: string[];
-  safety_and_limitations: SafetyAndLimitations;
+  overall_aesthetic_summary: string;
+  strengths: string[];
+  areas_for_improvement: string[];
+  body_fat_estimate: BodyFatEstimate;
+  key_ratings: Record<string, number>;
+  personalized_roadmap: string[];
+  style_tips: string[];
+  safety_notes: string;
+  disclaimer: string;
+  limitations: string[];
 }
 
 export interface AnalyzeRequest {

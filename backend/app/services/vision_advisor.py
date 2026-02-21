@@ -9,17 +9,38 @@ from app.core.config import Settings
 from app.schemas.analysis import UserContext, VanityAdvisorResponse
 
 SYSTEM_PROMPT = """
-You are Vanity AI Advisor, a strict but respectful visual aesthetics coach.
+You are Vanity AI Advisor, a confidence-building, glow-up focused aesthetics coach with positive “mog energy”.
 
-Non-negotiable rules in every response:
-1) NEVER provide medical diagnosis.
-2) ALWAYS include this exact disclaimer text in safety_and_limitations.disclaimer:
-   \"This is visual estimation only, not a substitute for DEXA/calipers/doctor. Consult professionals for health concerns.\"
-3) Mention uncertainty from lighting/pose/camera lens, and no metabolic/lab data.
-4) Include safety warnings for neck training and aggressive caloric deficits.
-5) Keep advice culturally neutral unless user asked otherwise.
+Primary response style:
+- Start with positives first: highlight 4-7 attractive/strong features before improvements.
+- Then provide constructive, kind improvements.
+- Then provide a practical 3-6 month roadmap.
+- Tone must be motivating, respectful, and never insulting.
 
-Be direct, realistic, and evidence-oriented.
+Coverage requirements (assess as visible; if uncertain, say so):
+1) Facial harmony & proportions (facial thirds, balance, FWHR/golden-ratio vibes when visible)
+2) Symmetry (face and body)
+3) Features: eyes, nose, lips, cheekbones, jawline/chin
+4) Hairline / hair framing
+5) Skin quality/clarity and peri-orbital appearance
+6) Neck and shoulder line
+7) Overall frame/proportions and V-taper potential
+8) Posture and posing tips
+9) Brief style/fashion suggestions
+10) Body-fat estimate integrated into overall aesthetic impression
+
+Safety and limitations (non-negotiable):
+- NEVER provide medical diagnoses.
+- ALWAYS include this exact disclaimer text in `disclaimer`:
+  "This is visual estimation only, not a substitute for DEXA/calipers/doctor. Consult professionals for health concerns."
+- Include warning language about neck-training injury risk and aggressive caloric deficits.
+- Mention uncertainty from lighting/pose/camera angle/lens and missing metabolic/lab data.
+- Use culturally neutral aesthetic ideals unless user explicitly requests otherwise.
+
+Consistency requirement:
+- For identical images, give very similar body-fat and numeric estimates (target ±1-2%). Be consistent and precise.
+
+Return strict JSON only matching the requested schema.
 """.strip()
 
 REQUIRED_DISCLAIMER = (
@@ -30,61 +51,62 @@ REQUIRED_DISCLAIMER = (
 
 def _response_schema() -> dict[str, Any]:
     confidence_enum = ["low", "medium", "high"]
-
-    insight_schema: dict[str, Any] = {
+    rating_schema = {
         "type": "object",
-        "additionalProperties": False,
-        "required": ["score", "confidence", "observations", "quick_wins", "cautions"],
-        "properties": {
-            "score": {"type": ["integer", "null"], "minimum": 1, "maximum": 10},
-            "confidence": {"type": "string", "enum": confidence_enum},
-            "observations": {"type": "array", "items": {"type": "string"}},
-            "quick_wins": {"type": "array", "items": {"type": "string"}},
-            "cautions": {"type": "array", "items": {"type": "string"}},
-        },
-    }
-
-    body_fat_schema: dict[str, Any] = {
-        "type": "object",
-        "additionalProperties": False,
-        "required": ["bf_estimate_percent", "confidence", "estimated_range", "rationale"],
-        "properties": {
-            "bf_estimate_percent": {"type": ["integer", "null"], "minimum": 3, "maximum": 60},
-            "confidence": {"type": "string", "enum": confidence_enum},
-            "estimated_range": {"type": "string"},
-            "rationale": {"type": "array", "items": {"type": "string"}},
-        },
+        "additionalProperties": {"type": "number", "minimum": 0, "maximum": 10},
+        "minProperties": 6,
     }
 
     return {
-        "name": "vanity_advisor_response",
+        "name": "vanity_aesthetic_assessment",
         "schema": {
             "type": "object",
             "additionalProperties": False,
             "required": [
-                "bf_estimate",
-                "eyebrow",
-                "neck_and_posture",
-                "symmetry_and_skin",
-                "glow_up_roadmap",
-                "safety_and_limitations",
+                "overall_aesthetic_summary",
+                "strengths",
+                "areas_for_improvement",
+                "body_fat_estimate",
+                "key_ratings",
+                "personalized_roadmap",
+                "style_tips",
+                "safety_notes",
+                "disclaimer",
+                "limitations",
             ],
             "properties": {
-                "bf_estimate": body_fat_schema,
-                "eyebrow": insight_schema,
-                "neck_and_posture": insight_schema,
-                "symmetry_and_skin": insight_schema,
-                "glow_up_roadmap": {"type": "array", "items": {"type": "string"}},
-                "safety_and_limitations": {
+                "overall_aesthetic_summary": {"type": "string"},
+                "strengths": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "minItems": 4,
+                    "maxItems": 7,
+                },
+                "areas_for_improvement": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "minItems": 3,
+                },
+                "body_fat_estimate": {
                     "type": "object",
                     "additionalProperties": False,
-                    "required": ["disclaimer", "safety_notes", "limitations"],
+                    "required": ["percentage", "confidence", "range"],
                     "properties": {
-                        "disclaimer": {"type": "string", "enum": [REQUIRED_DISCLAIMER]},
-                        "safety_notes": {"type": "array", "items": {"type": "string"}},
-                        "limitations": {"type": "array", "items": {"type": "string"}},
+                        "percentage": {"type": ["number", "null"], "minimum": 3, "maximum": 60},
+                        "confidence": {"type": "string", "enum": confidence_enum},
+                        "range": {"type": "string"},
                     },
                 },
+                "key_ratings": rating_schema,
+                "personalized_roadmap": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "minItems": 3,
+                },
+                "style_tips": {"type": "array", "items": {"type": "string"}},
+                "safety_notes": {"type": "string"},
+                "disclaimer": {"type": "string", "enum": [REQUIRED_DISCLAIMER]},
+                "limitations": {"type": "array", "items": {"type": "string"}},
             },
         },
         "strict": True,
@@ -102,12 +124,14 @@ class VisionAdvisorService:
                 model=self._settings.openai_model,
                 messages=messages,
                 response_format=response_format,
+                temperature=0.1,
             )
         except RateLimitError:
             return self._client.chat.completions.create(
                 model=self._settings.openai_model_fallback,
                 messages=messages,
                 response_format=response_format,
+                temperature=0.1,
             )
         except APIStatusError as exc:
             if exc.status_code is not None and exc.status_code >= 500:
@@ -115,6 +139,7 @@ class VisionAdvisorService:
                     model=self._settings.openai_model_fallback,
                     messages=messages,
                     response_format=response_format,
+                    temperature=0.1,
                 )
             raise
 
@@ -151,7 +176,9 @@ class VisionAdvisorService:
                     {
                         "type": "text",
                         "text": (
-                            "Analyze these physique/aesthetic photos and optional user metadata. "
+                            "Analyze these photos for a comprehensive aesthetic assessment. "
+                            "Assess all visible areas from face to frame/body proportions and posture. "
+                            "Start with positives, then improvements, then roadmap. "
                             f"Context: {user_context}."
                         ),
                     },
@@ -167,7 +194,6 @@ class VisionAdvisorService:
             )
             content = completion.choices[0].message.content or "{}"
         except BadRequestError:
-            # Fallback for deployments where strict structured outputs with vision are unavailable.
             completion = self._create_completion_with_model_fallback(
                 messages=[
                     {
@@ -175,9 +201,10 @@ class VisionAdvisorService:
                         "content": (
                             f"{SYSTEM_PROMPT}\n"
                             "Return strictly valid JSON with exactly these keys: "
-                            "bf_estimate, eyebrow, neck_and_posture, symmetry_and_skin, "
-                            "glow_up_roadmap, safety_and_limitations. "
-                            f"safety_and_limitations.disclaimer must equal: {REQUIRED_DISCLAIMER}"
+                            "overall_aesthetic_summary, strengths, areas_for_improvement, "
+                            "body_fat_estimate, key_ratings, personalized_roadmap, style_tips, "
+                            "safety_notes, disclaimer, limitations. "
+                            f"disclaimer must equal: {REQUIRED_DISCLAIMER}"
                         ),
                     },
                     messages[1],

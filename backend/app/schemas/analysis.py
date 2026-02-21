@@ -11,31 +11,20 @@ class UserContext(BaseModel):
     goals: str | None = Field(default=None, max_length=500)
 
 
-class Insight(BaseModel):
-    score: int | None = Field(default=None, ge=1, le=10)
-    confidence: Literal["low", "medium", "high"]
-    observations: list[str]
-    quick_wins: list[str]
-    cautions: list[str]
-
-
 class BodyFatEstimate(BaseModel):
-    bf_estimate_percent: int | None = Field(default=None, ge=3, le=60)
+    percentage: float | None = Field(default=None, ge=3, le=60)
     confidence: Literal["low", "medium", "high"]
-    estimated_range: str
-    rationale: list[str]
-
-
-class SafetyAndLimitations(BaseModel):
-    disclaimer: str
-    safety_notes: list[str]
-    limitations: list[str]
+    range: str
 
 
 class VanityAdvisorResponse(BaseModel):
-    bf_estimate: BodyFatEstimate
-    eyebrow: Insight
-    neck_and_posture: Insight
-    symmetry_and_skin: Insight
-    glow_up_roadmap: list[str]
-    safety_and_limitations: SafetyAndLimitations
+    overall_aesthetic_summary: str
+    strengths: list[str] = Field(min_length=4, max_length=7)
+    areas_for_improvement: list[str] = Field(min_length=3)
+    body_fat_estimate: BodyFatEstimate
+    key_ratings: dict[str, float]
+    personalized_roadmap: list[str] = Field(min_length=3)
+    style_tips: list[str]
+    safety_notes: str
+    disclaimer: str
+    limitations: list[str]

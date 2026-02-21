@@ -3,54 +3,50 @@ import json
 from typing import Any, Sequence
 
 from fastapi import UploadFile
-from openai import APIStatusError, BadRequestError, OpenAI, RateLimitError
+from openai import APIStatusError, OpenAI, RateLimitError
 
 from app.core.config import Settings
 from app.schemas.analysis import UserContext, VanityAdvisorResponse
 
 SYSTEM_PROMPT = """
-You are Vanity AI Advisor, a confidence-building, glow-up focused aesthetics coach with positive “mog energy”.
+You are Vanity AI Advisor, a confidence-building glow-up coach with positive mog energy.
 
-Primary response style:
-- Start with positives first: highlight 4-7 attractive/strong features before improvements.
-- Then provide constructive, kind improvements.
-- Then provide a practical 3-6 month roadmap.
-- Tone must be motivating, respectful, and never insulting.
+Task:
+- Analyze 2-4 user photos (front/side/back/flexed if provided) plus optional user context.
+- Deliver a comprehensive aesthetic assessment covering strengths first, then constructive improvements, then a practical roadmap.
 
-Coverage requirements (assess as visible; if uncertain, say so):
-1) Facial harmony & proportions (facial thirds, balance, FWHR/golden-ratio vibes when visible)
-2) Symmetry (face and body)
-3) Features: eyes, nose, lips, cheekbones, jawline/chin
-4) Hairline / hair framing
-5) Skin quality/clarity and peri-orbital appearance
-6) Neck and shoulder line
-7) Overall frame/proportions and V-taper potential
-8) Posture and posing tips
-9) Brief style/fashion suggestions
-10) Body-fat estimate integrated into overall aesthetic impression
+Required coverage:
+1) Facial harmony and proportions
+2) Symmetry (face/body)
+3) Key facial features (eyes, nose, lips, cheekbones, jawline/chin)
+4) Hairline/hair framing
+5) Skin quality and under-eye area
+6) Neck/shoulder line and posture
+7) Body proportions/frame and V-taper potential
+8) Style suggestions that enhance strengths
+9) Integrated body-fat estimate
 
-Safety and limitations (non-negotiable):
-- NEVER provide medical diagnoses.
-- ALWAYS include this exact disclaimer text in `disclaimer`:
-  "This is visual estimation only, not a substitute for DEXA/calipers/doctor. Consult professionals for health concerns."
-- Include warning language about neck-training injury risk and aggressive caloric deficits.
-- Mention uncertainty from lighting/pose/camera angle/lens and missing metabolic/lab data.
-- Use culturally neutral aesthetic ideals unless user explicitly requests otherwise.
+Tone constraints:
+- Encouraging, motivational, and respectful.
+- Never harsh or insulting.
+- Improvements must be constructive only.
 
-Consistency requirement:
-- For identical images, give very similar body-fat and numeric estimates (target ±1-2%). Be consistent and precise.
+Safety/limitations constraints:
+- NEVER give medical diagnoses.
+- Mention uncertainty from lighting, pose, lens, and missing metabolic/clinical data.
+- Warn against aggressive deficits and unsafe neck training progression.
+- Use culturally neutral aesthetic framing unless user specifies otherwise.
 
-Return strict JSON only matching the requested schema. Do not include markdown, prose outside JSON, comments, or code fences.
+Consistency constraint:
+- For identical inputs, estimates must be very similar (target ±1-2%), especially body-fat and numeric ratings.
+
+Output constraints:
+- Output ONLY valid JSON that strictly matches the provided schema.
+- No markdown, no code fences, no comments, no extra keys, no text outside JSON.
 """.strip()
 
-REQUIRED_DISCLAIMER = (
-    "This is visual estimation only, not a substitute for DEXA/calipers/doctor. "
-    "Consult professionals for health concerns."
-)
 
 def _parse_json_payload(raw_content: str) -> dict[str, Any]:
-    """Parse model output as JSON object only; reject non-JSON responses."""
-
     content = (raw_content or "").strip()
     if not content:
         raise ValueError("Model returned empty content; expected valid JSON object.")
@@ -62,15 +58,9 @@ def _parse_json_payload(raw_content: str) -> dict[str, Any]:
 
 
 def _response_schema() -> dict[str, Any]:
-    confidence_enum = ["low", "medium", "high"]
-    rating_schema = {
-        "type": "object",
-        "additionalProperties": {"type": "number", "minimum": 0, "maximum": 10},
-        "minProperties": 6,
-    }
-
     return {
-        "name": "vanity_aesthetic_assessment",
+        "name": "vanity_advisor_response",
+        "strict": True,
         "schema": {
             "type": "object",
             "additionalProperties": False,
@@ -79,11 +69,8 @@ def _response_schema() -> dict[str, Any]:
                 "strengths",
                 "areas_for_improvement",
                 "body_fat_estimate",
-                "key_ratings",
                 "personalized_roadmap",
                 "style_tips",
-                "safety_notes",
-                "disclaimer",
                 "limitations",
             ],
             "properties": {
@@ -97,31 +84,39 @@ def _response_schema() -> dict[str, Any]:
                 "areas_for_improvement": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "minItems": 3,
+                    "minItems": 1,
                 },
                 "body_fat_estimate": {
                     "type": "object",
                     "additionalProperties": False,
-                    "required": ["percentage", "confidence", "range"],
+                    "required": ["percentage", "confidence"],
                     "properties": {
-                        "percentage": {"type": ["number", "null"], "minimum": 3, "maximum": 60},
-                        "confidence": {"type": "string", "enum": confidence_enum},
-                        "range": {"type": "string"},
+                        "percentage": {"type": "number", "minimum": 3, "maximum": 60},
+                        "range": {"type": ["string", "null"]},
+                        "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
                     },
                 },
-                "key_ratings": rating_schema,
+                "key_ratings": {
+                    "type": ["object", "null"],
+                    "additionalProperties": {"type": "number", "minimum": 0, "maximum": 10},
+                },
                 "personalized_roadmap": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "minItems": 3,
+                    "minItems": 1,
                 },
-                "style_tips": {"type": "array", "items": {"type": "string"}},
-                "safety_notes": {"type": "string"},
-                "disclaimer": {"type": "string", "enum": [REQUIRED_DISCLAIMER]},
-                "limitations": {"type": "array", "items": {"type": "string"}},
+                "style_tips": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "minItems": 1,
+                },
+                "limitations": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "minItems": 1,
+                },
             },
         },
-        "strict": True,
     }
 
 
@@ -161,9 +156,6 @@ class VisionAdvisorService:
             payload = await file.read()
             encoded = base64.b64encode(payload).decode("utf-8")
             media_type = file.content_type or "image/jpeg"
-            # We default to low detail for lower latency/cost/token usage;
-            # trade-off: reduced fidelity can miss subtle eyebrow hair density,
-            # skin texture, or fine posture cues versus auto/high detail.
             image_content.append(
                 {
                     "type": "image_url",
@@ -192,8 +184,7 @@ class VisionAdvisorService:
                         "type": "text",
                         "text": (
                             "Analyze these photos for a comprehensive aesthetic assessment. "
-                            "Assess all visible areas from face to frame/body proportions and posture. "
-                            "Start with positives, then improvements, then roadmap. "
+                            "Start with positives, then constructive improvements, then roadmap. "
                             f"Context: {user_context}."
                         ),
                     },
@@ -202,31 +193,11 @@ class VisionAdvisorService:
             },
         ]
 
-        try:
-            completion = self._create_completion_with_model_fallback(
-                messages=messages,
-                response_format={"type": "json_schema", "json_schema": _response_schema()},
-            )
-            content = completion.choices[0].message.content or "{}"
-        except BadRequestError:
-            completion = self._create_completion_with_model_fallback(
-                messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            f"{SYSTEM_PROMPT}\n"
-                            "Return strictly valid JSON with exactly these keys: "
-                            "overall_aesthetic_summary, strengths, areas_for_improvement, "
-                            "body_fat_estimate, key_ratings, personalized_roadmap, style_tips, "
-                            "safety_notes, disclaimer, limitations. "
-                            f"disclaimer must equal: {REQUIRED_DISCLAIMER}"
-                        ),
-                    },
-                    messages[1],
-                ],
-                response_format={"type": "json_object"},
-            )
-            content = completion.choices[0].message.content or "{}"
+        completion = self._create_completion_with_model_fallback(
+            messages=messages,
+            response_format={"type": "json_schema", "json_schema": _response_schema()},
+        )
 
+        content = completion.choices[0].message.content or "{}"
         payload = _parse_json_payload(content)
         return VanityAdvisorResponse.model_validate(payload)

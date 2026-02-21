@@ -1,9 +1,9 @@
-export type Confidence = "low" | "medium" | "high";
+export type Confidence = "high" | "medium" | "low";
 
 export interface BodyFatEstimate {
-  percentage: number | null;
+  percentage: number;
+  range?: string | null;
   confidence: Confidence;
-  range: string;
 }
 
 export interface VanityAdvisorResponse {
@@ -11,11 +11,9 @@ export interface VanityAdvisorResponse {
   strengths: string[];
   areas_for_improvement: string[];
   body_fat_estimate: BodyFatEstimate;
-  key_ratings: Record<string, number>;
+  key_ratings?: Record<string, number> | null;
   personalized_roadmap: string[];
   style_tips: string[];
-  safety_notes: string;
-  disclaimer: string;
   limitations: string[];
 }
 

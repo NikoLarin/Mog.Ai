@@ -18,13 +18,7 @@ class UserContext(BaseModel):
 
 
 class BodyFatEstimate(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-        json_schema_extra={
-            "additionalProperties": False,
-            "required": ["percentage", "range", "confidence"],
-        },
-    )
+    model_config = ConfigDict(extra="forbid")
 
     percentage: float = Field(ge=3, le=60)
     range: str | None
@@ -32,20 +26,7 @@ class BodyFatEstimate(BaseModel):
 
 
 class VanityAdvisorResponse(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-        json_schema_extra={
-            "additionalProperties": False,
-            "required": [
-                "overall_aesthetic_summary",
-                "strengths",
-                "areas_for_improvement",
-                "body_fat_estimate",
-                "personalized_steps",
-                "limitations",
-            ],
-        },
-    )
+    model_config = ConfigDict(extra="forbid")
 
     overall_aesthetic_summary: str
     strengths: list[str] = Field(min_length=4, max_length=7)
@@ -56,13 +37,7 @@ class VanityAdvisorResponse(BaseModel):
 
 
 class PreviewReportResponse(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-        json_schema_extra={
-            "additionalProperties": False,
-            "required": ["summary", "strengths", "hidden_insights_count", "tease_line"],
-        },
-    )
+    model_config = ConfigDict(extra="forbid")
 
     summary: str
     strengths: list[str] = Field(min_length=3, max_length=5)

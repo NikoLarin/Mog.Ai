@@ -76,11 +76,11 @@ export function ResultCards({ result }: { result: VanityAdvisorResponse }) {
       </section>
 
       <section className="card">
-        <h3 className="text-lg font-semibold">Your 6-Month Roadmap</h3>
+        <h3 className="text-lg font-semibold">Personalized Steps</h3>
         <div className="mt-3 grid gap-3 md:grid-cols-2">
-          {result.personalized_roadmap.map((step, idx) => (
+          {result.personalized_steps.map((step, idx) => (
             <div key={step} className="rounded-lg border border-indigo-700/40 bg-indigo-950/20 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-indigo-300">Month {idx + 1}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-indigo-300">Step {idx + 1}</p>
               <p className="mt-1 text-sm text-slate-100">{step}</p>
             </div>
           ))}

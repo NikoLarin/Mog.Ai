@@ -13,7 +13,7 @@ You are Vanity AI Advisor, a confidence-building glow-up coach with positive mog
 
 Task:
 - Analyze 2-4 user photos (front/side/back/flexed if provided) plus optional user context.
-- Deliver a comprehensive aesthetic assessment covering strengths first, then constructive improvements, then a practical roadmap.
+- Deliver a comprehensive aesthetic assessment covering strengths first, then constructive improvements, then practical next steps.
 
 Required coverage:
 1) Facial harmony and proportions
@@ -42,8 +42,8 @@ Safety/limitations constraints:
 Consistency constraint:
 - For identical inputs, estimates must be very similar (target ±1-2%), especially body-fat and numeric ratings.
 
-Roadmap constraints:
-- personalized_roadmap must contain exactly 6 items (Month 1 to Month 6), each actionable and specific.
+Step constraints:
+- personalized_steps must be actionable and specific.
 - Include practical methods like exercise selection/progression, nutrition habits, grooming/style actions, and when appropriate doctor-supervised treatment discussions.
 
 Output constraints:
@@ -76,7 +76,7 @@ def _response_schema() -> dict[str, Any]:
                 "areas_for_improvement",
                 "body_fat_estimate",
                 "key_ratings",
-                "personalized_roadmap",
+                "personalized_steps",
                 "style_tips",
                 "limitations",
             ],
@@ -107,11 +107,10 @@ def _response_schema() -> dict[str, Any]:
                     "type": ["object", "null"],
                     "additionalProperties": {"type": "number", "minimum": 0, "maximum": 10},
                 },
-                "personalized_roadmap": {
+                "personalized_steps": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "minItems": 6,
-                    "maxItems": 6,
+                    "minItems": 3,
                 },
                 "style_tips": {
                     "type": "array",
@@ -192,7 +191,7 @@ class VisionAdvisorService:
                         "type": "text",
                         "text": (
                             "Analyze these photos for a comprehensive aesthetic assessment. "
-                            "Start with positives, then constructive improvements, then roadmap. "
+                            "Start with positives, then constructive improvements, then steps. "
                             f"Context: {user_context}."
                         ),
                     },

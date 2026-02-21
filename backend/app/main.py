@@ -14,16 +14,26 @@ settings = get_settings()
 limiter = Limiter(key_func=get_remote_address, default_limits=[f"{settings.requests_per_minute}/minute"])
 
 app = FastAPI(title="Vanity AI Advisor API", version="0.1.0")
-app.state.limiter = limiter
-app.add_middleware(SlowAPIMiddleware)
+
+allowed_origins = [origin.strip() for origin in settings.allowed_origins.split(",") if origin.strip()]
+if "http://localhost:3000" not in allowed_origins:
+    allowed_origins.append("http://localhost:3000")
+if "https://mog-ai-git-codex-build-vanity-ai-adv-1c4e62-nikolarins-projects.vercel.app" not in allowed_origins:
+    allowed_origins.append("https://mog-ai-git-codex-build-vanity-ai-adv-1c4e62-nikolarins-projects.vercel.app")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin.strip() for origin in settings.allowed_origins.split(",")],
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,
 )
+
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
 
 
 @app.exception_handler(RateLimitExceeded)

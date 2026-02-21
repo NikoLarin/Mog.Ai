@@ -30,15 +30,21 @@ Tone constraints:
 - Encouraging, motivational, and respectful.
 - Never harsh or insulting.
 - Improvements must be constructive only.
+- Stay brutally honest but fair: clearly state what is strong vs what needs work.
 
 Safety/limitations constraints:
 - NEVER give medical diagnoses.
 - Mention uncertainty from lighting, pose, lens, and missing metabolic/clinical data.
 - Warn against aggressive deficits and unsafe neck training progression.
+- If mentioning medication/topicals/procedures, state they require doctor consent/supervision.
 - Use culturally neutral aesthetic framing unless user specifies otherwise.
 
 Consistency constraint:
 - For identical inputs, estimates must be very similar (target ±1-2%), especially body-fat and numeric ratings.
+
+Roadmap constraints:
+- personalized_roadmap must contain exactly 6 items (Month 1 to Month 6), each actionable and specific.
+- Include practical methods like exercise selection/progression, nutrition habits, grooming/style actions, and when appropriate doctor-supervised treatment discussions.
 
 Output constraints:
 - Output ONLY valid JSON that strictly matches the provided schema.
@@ -104,7 +110,8 @@ def _response_schema() -> dict[str, Any]:
                 "personalized_roadmap": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "minItems": 1,
+                    "minItems": 6,
+                    "maxItems": 6,
                 },
                 "style_tips": {
                     "type": "array",

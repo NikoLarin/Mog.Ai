@@ -11,37 +11,37 @@ const PLAYBOOK: PlaybookItem[] = [
     trigger: /skin|acne|clarity|under-eye|texture/i,
     title: "Clearer skin / fresher eye area",
     methods: [
-      "Nutrition method: bias toward lower-glycemic carbs, high-fiber meals, and omega-3 sources for 8-12 weeks.",
-      "Recovery method: lock consistent sleep/wake windows and reduce alcohol intake for visible inflammation control.",
-      "Topical method: discuss evidence-based skincare (retinoid, azelaic acid, benzoyl peroxide) with a licensed clinician.",
-      "Pharma option (doctor-supervised): if persistent acne or inflammation remains, ask a dermatologist about prescription options and risks."
+      "Diet: run an 8-12 week lower-glycemic nutrition block (whole foods, high fiber, omega-3s, fewer ultra-processed foods).",
+      "Recovery: 7.5-9h sleep target + alcohol minimization to reduce inflammation and improve skin texture.",
+      "Topicals (with clinician guidance): discuss retinoid/azelaic acid/benzoyl peroxide protocol and irritation management.",
+      "Medical treatment: ask a dermatologist about prescription options if stubborn acne/inflammation persists; use only with doctor supervision."
     ]
   },
   {
     trigger: /neck|posture|forward head|shoulder/i,
     title: "Neck line / posture upgrade",
     methods: [
-      "Daily 8-10 min posture stack: chin tucks, wall slides, thoracic extension, lower-trap activation.",
-      "Strength method: add rows/face-pulls/rear-delt work 2-3x weekly to support shoulder position.",
-      "Safety: avoid aggressive neck loading jumps; progress gradually and stop if pain/nerve symptoms appear."
+      "Exercise block (3x/week): chin tucks 2x12, wall slides 2x12, face pulls 3x15, chest-supported rows 3x10.",
+      "Daily mobility: thoracic extension over foam roller 5 minutes + doorway pec stretch 2x45s.",
+      "Safety: avoid aggressive neck loading jumps; increase volume/load gradually and stop with pain or nerve symptoms."
     ]
   },
   {
     trigger: /body fat|definition|lean|waist/i,
     title: "Leaner look / sharper definition",
     methods: [
-      "Calorie method: use a moderate deficit (roughly 300-500 kcal/day), not crash dieting.",
-      "Training method: prioritize resistance training + daily steps to preserve shape while leaning down.",
-      "Protein method: aim for high daily protein consistency to retain muscle and improve visual composition."
+      "Nutrition: maintain a moderate 300-500 kcal deficit with weekly adjustment based on trend weight and photos.",
+      "Training: 3-5 resistance sessions/week (squat/hinge/push/pull) + 8-12k daily steps.",
+      "Composition support: keep protein high and stable to preserve muscle while cutting."
     ]
   },
   {
     trigger: /eyebrow|brow|hairline|hair/i,
     title: "Eyebrow & hair framing",
     methods: [
-      "Grooming method: maintain a consistent shaping cadence and avoid over-plucking.",
-      "Styling method: choose cuts that open the brow and support cheekbone/jaw framing.",
-      "Medical-growth option (doctor-supervised): discuss potential therapies (e.g., topical agents) and risk profile with a professional."
+      "Grooming: keep a strict 10-14 day eyebrow maintenance cadence; avoid over-thinning.",
+      "Styling: select haircut volume/parting that opens the brow and frames jaw-cheek lines.",
+      "Medical option: discuss evidence-based growth interventions only with a licensed doctor and review side effects first."
     ]
   }
 ];
@@ -54,11 +54,11 @@ function getPlaybook(areas: string[]): PlaybookItem[] {
   return [
     {
       trigger: /.*/,
-      title: "General glow-up execution",
+      title: "General 6-month glow-up execution",
       methods: [
-        "Run 6-8 week cycles: one clear physique goal, one grooming goal, one posture goal.",
-        "Track weekly photos with identical lighting/angle to measure real progress.",
-        "Keep changes gradual and sustainable so improvements compound instead of rebounding."
+        "Lock one physique KPI, one posture KPI, and one grooming KPI each month.",
+        "Take weekly comparison photos in identical lighting/angle to stay objective.",
+        "Use gradual, sustainable changes to avoid rebound and preserve momentum."
       ]
     }
   ];
@@ -73,6 +73,18 @@ export function ResultCards({ result }: { result: VanityAdvisorResponse }) {
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-transparent to-emerald-500/10" />
         <h2 className="text-xl font-semibold">Overall Aesthetic Summary</h2>
         <p className="mt-2 text-sm text-slate-100">{result.overall_aesthetic_summary}</p>
+      </section>
+
+      <section className="card">
+        <h3 className="text-lg font-semibold">Your 6-Month Roadmap</h3>
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
+          {result.personalized_roadmap.map((step, idx) => (
+            <div key={step} className="rounded-lg border border-indigo-700/40 bg-indigo-950/20 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-indigo-300">Month {idx + 1}</p>
+              <p className="mt-1 text-sm text-slate-100">{step}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -96,6 +108,25 @@ export function ResultCards({ result }: { result: VanityAdvisorResponse }) {
       </div>
 
       <section className="card">
+        <h3 className="text-lg font-semibold">Action Playbook (Practical Methods)</h3>
+        <div className="mt-3 space-y-3">
+          {playbook.map((item) => (
+            <div key={item.title} className="rounded-lg border border-slate-700 bg-slate-950/60 p-3">
+              <p className="text-sm font-semibold text-indigo-300">{item.title}</p>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-100">
+                {item.methods.map((method) => (
+                  <li key={method}>{method}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 rounded-md bg-rose-500/15 px-3 py-2 text-xs text-rose-100">
+          Any pharmaceutical or prescription intervention requires informed consent and licensed doctor supervision.
+        </p>
+      </section>
+
+      <section className="card">
         <h3 className="text-lg font-semibold">Body Fat Estimate</h3>
         <p className="mt-2 text-sm text-slate-200">
           {result.body_fat_estimate.percentage}%{result.body_fat_estimate.range ? ` (${result.body_fat_estimate.range})` : ""} • {result.body_fat_estimate.confidence} confidence
@@ -117,34 +148,6 @@ export function ResultCards({ result }: { result: VanityAdvisorResponse }) {
             </div>
           ))}
         </div>
-      </section>
-
-      <section className="card">
-        <h3 className="text-lg font-semibold">Action Playbook (Practical Methods)</h3>
-        <div className="mt-3 space-y-3">
-          {playbook.map((item) => (
-            <div key={item.title} className="rounded-lg border border-slate-700 bg-slate-950/60 p-3">
-              <p className="text-sm font-semibold text-indigo-300">{item.title}</p>
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-100">
-                {item.methods.map((method) => (
-                  <li key={method}>{method}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-        <p className="mt-3 rounded-md bg-rose-500/15 px-3 py-2 text-xs text-rose-100">
-          Any pharmaceutical intervention must be discussed with and supervised by a licensed doctor.
-        </p>
-      </section>
-
-      <section className="card">
-        <h3 className="text-lg font-semibold">Personalized Roadmap (3–6 Months)</h3>
-        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-100">
-          {result.personalized_roadmap.map((step) => (
-            <li key={step}>{step}</li>
-          ))}
-        </ol>
       </section>
 
       <section className="card">

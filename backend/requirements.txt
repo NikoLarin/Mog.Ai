@@ -1,0 +1,7 @@
+fastapi==0.115.8
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+openai==1.65.2
+pydantic-settings==2.8.1
+slowapi==0.1.9
+Pillow==11.1.0

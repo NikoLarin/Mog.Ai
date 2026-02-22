@@ -3,9 +3,9 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "MMax – AI Vanity Scan & Looksmaxxing Advisor",
+  title: "MogMax – AI Vanity Scan & Looksmaxxing Advisor",
   description: "Upload your photos. Get brutally honest AI physique analysis & maxxing advice. Unlock your full potential.",
-  metadataBase: new URL("https://mmax.org"),
+  metadataBase: new URL("https://mogmax.org"),
   openGraph: {
     title: "MogMax – AI Vanity Scan & Looksmaxxing Advisor",
     description: "Upload your photos. Get brutally honest AI physique analysis & maxxing advice. Unlock your full potential.",

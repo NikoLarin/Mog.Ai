@@ -1,11 +1,12 @@
 import json
+import logging
 import shutil
 import uuid
 from collections.abc import Sequence
 from pathlib import Path
 
 import stripe
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, UploadFile, status
 
 from app.core.config import Settings, get_settings
 from app.schemas.analysis import (
@@ -21,6 +22,34 @@ from app.services.vision_advisor import VisionAdvisorService
 
 router = APIRouter(prefix="/api/v1", tags=["analysis"])
 SCAN_STORAGE = Path("/tmp/mog_scans")
+logger = logging.getLogger(__name__)
+
+
+async def _generate_report_for_scan(scan_id: str, settings: Settings) -> None:
+    folder = _scan_dir(scan_id)
+    if not folder.exists():
+        logger.warning("Stripe webhook scan_id not found: %s", scan_id)
+        return
+
+    try:
+        context = UserContext.model_validate_json((folder / "context.json").read_text())
+        images_info = json.loads((folder / "images.json").read_text())
+    except Exception:
+        logger.exception("Failed to load scan context/images for webhook scan_id=%s", scan_id)
+        return
+
+    images: list[tuple[bytes, str]] = []
+    try:
+        for item in images_info:
+            raw = (folder / item["filename"]).read_bytes()
+            images.append((raw, item["content_type"]))
+
+        service = VisionAdvisorService(settings)
+        result = await service.analyze_raw_images(images=images, context=context)
+        (folder / "report.json").write_text(result.model_dump_json())
+        logger.info("Stripe webhook generated report for scan_id=%s", scan_id)
+    except Exception:
+        logger.exception("Failed to generate report from webhook for scan_id=%s", scan_id)
 
 
 def _validate_files(files: Sequence[UploadFile], settings: Settings) -> None:
@@ -183,8 +212,8 @@ async def create_checkout(payload: CreateCheckoutRequest, settings: Settings = D
     try:
         checkout_payload: dict[str, object] = {
             "mode": "payment",
-            success_url = "https://mog-ai.vercel.app/scan/success?session_id={CHECKOUT_SESSION_ID}&scan_id={scan_id}"
-            cancel_url = "https://mog-ai.vercel.app/upload"  # or your cancel page
+            "success_url": f"{settings.frontend_base_url}/scan/success?session_id={{CHECKOUT_SESSION_ID}}&scan_id={payload.scan_id}",
+            "cancel_url": f"{settings.frontend_base_url}/scan/cancel?scan_id={payload.scan_id}",
             "client_reference_id": payload.scan_id,
             "metadata": {"scan_id": payload.scan_id},
             "line_items": [
@@ -210,7 +239,11 @@ async def create_checkout(payload: CreateCheckoutRequest, settings: Settings = D
 
 
 @router.post("/webhooks/stripe")
-async def stripe_webhook(request: Request, settings: Settings = Depends(get_settings)) -> dict[str, bool]:
+async def stripe_webhook(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    settings: Settings = Depends(get_settings),
+) -> dict[str, bool]:
     if not settings.stripe_webhook_secret:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Stripe webhook secret not configured.")
 
@@ -222,15 +255,20 @@ async def stripe_webhook(request: Request, settings: Settings = Depends(get_sett
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, settings.stripe_webhook_secret)
     except ValueError as exc:
+        logger.warning("Invalid Stripe webhook payload: %s", exc)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid webhook payload: {exc}") from exc
     except stripe.error.SignatureVerificationError as exc:
+        logger.warning("Invalid Stripe webhook signature: %s", exc)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid webhook signature: {exc}") from exc
 
     if event.get("type") == "checkout.session.completed":
         session = event.get("data", {}).get("object", {})
         scan_id = (session.get("metadata") or {}).get("scan_id") or session.get("client_reference_id")
         if scan_id:
-            print(f"[stripe webhook] checkout.session.completed for scan_id={scan_id}")
+            logger.info("Stripe checkout completed for scan_id=%s", scan_id)
+            background_tasks.add_task(_generate_report_for_scan, str(scan_id), settings)
+        else:
+            logger.warning("Stripe checkout completed but scan_id missing in metadata/client_reference_id")
 
     return {"received": True}
 

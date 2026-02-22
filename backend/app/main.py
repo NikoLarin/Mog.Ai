@@ -19,6 +19,19 @@ logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="Vanity AI Advisor API", version="0.1.0")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "https://mog-ai.vercel.app",  # ← must have this for production
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,
+)
+
 allowed_origins = [origin.strip() for origin in settings.allowed_origins.split(",") if origin.strip()]
 for required_origin in (
     "http://localhost:3000",

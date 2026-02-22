@@ -5,7 +5,7 @@ export default function HomePage() {
     <div className="space-y-6">
       <header className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-r from-indigo-900/40 via-slate-900 to-emerald-900/30 p-6">
         <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-indigo-400/20 blur-2xl" />
-        <h1 className="text-3xl font-bold tracking-tight">Mog.Ai — Vanity AI Advisor</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Mogmax.org — Vanity AI Advisor</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-200">
           Upload 2–4 photos to generate a free preview. Unlock your full premium AI algorithm report for a one-time $4.99.
         </p>

@@ -23,8 +23,7 @@ allowed_origins = [origin.strip() for origin in settings.allowed_origins.split("
 for required_origin in (
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://mog-ai.vercel.app",
-    "https://mogmax.org"
+    "https://mogmax.org",
 ):
     if required_origin not in allowed_origins:
         allowed_origins.append(required_origin)
@@ -32,7 +31,7 @@ for required_origin in (
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"^https://mog-ai(-git-.*-nikolarins-projects)?\.vercel\.app$",
+    allow_origin_regex=r"^https://(mogmax\.org|mog-ai(-git-.*-nikolarins-projects)?\.vercel\.app)$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

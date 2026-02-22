@@ -20,14 +20,14 @@ class Settings(BaseSettings):
     stripe_currency: str = Field(default="usd", alias="STRIPE_CURRENCY")
     stripe_webhook_secret: str | None = Field(default=None, alias="STRIPE_WEBHOOK_SECRET")
     frontend_base_url: str = Field(
-        default="https://mog-ai.vercel.app",
+        default="https://mogmax.org",
         validation_alias=AliasChoices("FRONTEND_URL", "FRONTEND_BASE_URL"),
     )
 
     max_images: int = Field(default=4, alias="MAX_IMAGES")
     max_image_size_mb: int = Field(default=10, alias="MAX_IMAGE_SIZE_MB")
     allowed_origins: str = Field(
-        default="http://localhost:3000,http://127.0.0.1:3000,https://mog-ai.vercel.app",
+        default="http://localhost:3000,http://127.0.0.1:3000,https://mogmax.org",
         alias="ALLOWED_ORIGINS",
     )
     requests_per_minute: int = Field(default=20, alias="REQUESTS_PER_MINUTE")

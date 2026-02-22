@@ -246,7 +246,7 @@ function buildSimplePdf(lines: string[]): Uint8Array {
 }
 
 function downloadPdfReport(result: VanityAdvisorResponse, playbook: PlaybookItem[]): void {
-  const lines: string[] = ["Mog.Ai Vanity Advisor Report", "", "Overall Summary:", result.overall_aesthetic_summary, "", "Strengths:"];
+  const lines: string[] = ["Mogmax.org Vanity Advisor Report", "", "Overall Summary:", result.overall_aesthetic_summary, "", "Strengths:"];
 
   result.strengths.forEach((s) => lines.push(`- ${s}`));
   lines.push("", "Areas for Improvement:");
@@ -266,7 +266,7 @@ function downloadPdfReport(result: VanityAdvisorResponse, playbook: PlaybookItem
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = "mog-ai-report.pdf";
+  anchor.download = "mogmax-report.pdf";
   anchor.click();
   URL.revokeObjectURL(url);
 }

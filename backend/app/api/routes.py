@@ -1,6 +1,5 @@
 import json
 import logging
-import re
 import shutil
 import uuid
 from collections.abc import Sequence
@@ -27,19 +26,20 @@ logger = logging.getLogger(__name__)
 
 
 def _checkout_frontend_base_url(settings: Settings) -> str:
-    base_url = settings.frontend_base_url.strip().rstrip("/")
-    if not base_url:
-        return "https://mog-ai.vercel.app"
+    production_url = "https://mogmax.org"
+    configured = settings.frontend_base_url.strip().rstrip("/")
 
-    preview_pattern = r"^https://mog-ai-git-.*-nikolarins-projects\.vercel\.app$"
-    if re.match(preview_pattern, base_url):
+    if settings.app_env.lower() == "development" and configured.startswith(("http://localhost", "http://127.0.0.1")):
+        return configured
+
+    if configured and configured != production_url:
         logger.warning(
-            "FRONTEND_URL points to ephemeral Vercel preview (%s). Overriding to production domain for Stripe redirects.",
-            base_url,
+            "Ignoring non-production FRONTEND_URL for Stripe redirects (%s). Using %s instead.",
+            configured,
+            production_url,
         )
-        return "https://mog-ai.vercel.app"
 
-    return base_url
+    return production_url
 
 
 async def _generate_report_for_scan(scan_id: str, settings: Settings) -> None:
@@ -241,7 +241,7 @@ async def create_checkout(payload: CreateCheckoutRequest, settings: Settings = D
                     "price_data": {
                         "currency": settings.stripe_currency,
                         "unit_amount": settings.stripe_scan_price_cents,
-                        "product_data": {"name": "Mog.Ai Full Vanity Scan"},
+                        "product_data": {"name": "Mogmax.org Full Vanity Scan"},
                     },
                 }
             ],

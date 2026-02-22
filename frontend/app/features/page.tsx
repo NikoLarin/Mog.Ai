@@ -36,7 +36,7 @@ export default function FeaturesPage() {
   return (
     <div className="space-y-6">
       <header className="rounded-2xl border border-teal-500/30 bg-gradient-to-r from-slate-950 via-slate-900 to-teal-950/40 p-6">
-        <p className="text-xs uppercase tracking-[0.2em] text-teal-300">Mog.Ai Features</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-teal-300">Mogmax.org Features</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-100">Get Your Personalized AI Vanity Advisor Report – $4.99 One-Time</h1>
         <p className="mt-3 max-w-3xl text-sm text-slate-300">
           See what the product does, what to expect, and how to get more accurate scans.
@@ -62,6 +62,15 @@ export default function FeaturesPage() {
             </details>
           ))}
         </div>
+      </section>
+
+
+      <section className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-6">
+        <h2 className="text-xl font-semibold text-slate-100">Contact Us</h2>
+        <p className="mt-2 text-sm text-slate-300">
+          Have questions about features, FAQ details, billing, or report delivery? Reach us at{' '}
+          <a className="text-emerald-300 underline" href="mailto:mogmaxbusiness@gmail.com">mogmaxbusiness@gmail.com</a>.
+        </p>
       </section>
 
       <section className="rounded-xl border border-slate-800 bg-slate-950/70 p-4 text-sm text-slate-300">

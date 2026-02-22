@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter
@@ -13,18 +15,23 @@ from app.core.config import get_settings
 settings = get_settings()
 limiter = Limiter(key_func=get_remote_address, default_limits=[f"{settings.requests_per_minute}/minute"])
 
+logging.basicConfig(level=logging.INFO)
+
 app = FastAPI(title="Vanity AI Advisor API", version="0.1.0")
 
 allowed_origins = [origin.strip() for origin in settings.allowed_origins.split(",") if origin.strip()]
-if "http://localhost:3000" not in allowed_origins:
-    allowed_origins.append("http://localhost:3000")
-if "https://mog-ai-git-codex-build-vanity-ai-adv-1c4e62-nikolarins-projects.vercel.app" not in allowed_origins:
-    allowed_origins.append("https://mog-ai-git-codex-build-vanity-ai-adv-1c4e62-nikolarins-projects.vercel.app")
+for required_origin in (
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://mog-ai.vercel.app",
+):
+    if required_origin not in allowed_origins:
+        allowed_origins.append(required_origin)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"https://mog-ai-git-.*-nikolarins-projects\.vercel\.app",
+    allow_origin_regex=r"^https://mog-ai(-git-.*-nikolarins-projects)?\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

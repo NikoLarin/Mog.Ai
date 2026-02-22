@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     max_images: int = Field(default=4, alias="MAX_IMAGES")
     max_image_size_mb: int = Field(default=10, alias="MAX_IMAGE_SIZE_MB")
     allowed_origins: str = Field(
-        default="http://localhost:3000,https://mog-ai-git-codex-build-vanity-ai-adv-1c4e62-nikolarins-projects.vercel.app",
+        default="http://localhost:3000,http://127.0.0.1:3000,https://mog-ai.vercel.app",
         alias="ALLOWED_ORIGINS",
     )
     requests_per_minute: int = Field(default=20, alias="REQUESTS_PER_MINUTE")

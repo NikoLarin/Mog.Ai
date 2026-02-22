@@ -50,7 +50,7 @@ export async function prepareScan(payload: AnalyzeRequest): Promise<{ scan_id: s
 
   const url = getApiUrl("/api/v1/scans/prepare");
   console.log("DEBUG: Fetching prepareScan at", url);
-  const response = await fetch(url, { method: "POST", body: formData });
+  const response = await fetch(url, { method: "POST", mode: "cors", body: formData });
   if (!response.ok) await parseError(response);
   return (await response.json()) as { scan_id: string; image_count: number; message: string };
 }
@@ -58,7 +58,7 @@ export async function prepareScan(payload: AnalyzeRequest): Promise<{ scan_id: s
 export async function getPreview(scanId: string): Promise<PreviewReportResponse> {
   const url = getApiUrl(`/api/v1/scans/${scanId}/preview`);
   console.log("DEBUG: Fetching getPreview at", url);
-  const response = await fetch(url);
+  const response = await fetch(url, { mode: "cors" });
   if (!response.ok) await parseError(response);
   return (await response.json()) as PreviewReportResponse;
 }
@@ -68,6 +68,7 @@ export async function createCheckout(scanId: string): Promise<{ session_id: stri
   console.log("DEBUG: Fetching createCheckout at", url);
   const response = await fetch(url, {
     method: "POST",
+    mode: "cors",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ scan_id: scanId })
   });
@@ -80,6 +81,7 @@ export async function analyzePaid(scanId: string, stripeSessionId: string): Prom
   console.log("DEBUG: Fetching analyzePaid at", url);
   const response = await fetch(url, {
     method: "POST",
+    mode: "cors",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ scan_id: scanId, stripe_session_id: stripeSessionId })
   });

@@ -1,12 +1,24 @@
 import type { AnalyzeRequest, PreviewReportResponse, VanityAdvisorResponse } from "@/types/analysis";
 
-export const API_BASE =
+const ENV_API_BASE =
   process.env.NEXT_PUBLIC_BACKEND_URL ??
   process.env.NEXT_PUBLIC_API_BASE_URL ??
-  process.env.NEXT_PUBLIC_API_URL ??
-  "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_URL;
+
+export const API_BASE =
+  ENV_API_BASE && ENV_API_BASE.trim().length > 0
+    ? ENV_API_BASE
+    : process.env.NODE_ENV === "production"
+      ? ""
+      : "http://localhost:8000";
 
 export function getApiUrl(path: string): string {
+  if (!API_BASE) {
+    throw new Error(
+      "Missing backend URL. Set NEXT_PUBLIC_BACKEND_URL (preferred) or NEXT_PUBLIC_API_BASE_URL / NEXT_PUBLIC_API_URL."
+    );
+  }
+
   const normalizedBase = API_BASE.replace(/\/+$/, "");
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${normalizedBase}${normalizedPath}`;

@@ -24,7 +24,7 @@ if "https://mog-ai-git-codex-build-vanity-ai-adv-1c4e62-nikolarins-projects.verc
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origin_regex=r"https://mog-ai-git-.*-nikolarins-projects\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

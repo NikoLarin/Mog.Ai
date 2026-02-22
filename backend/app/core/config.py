@@ -26,6 +26,7 @@ class Settings(BaseSettings):
         default="http://localhost:3000,https://mog-ai-git-codex-build-vanity-ai-adv-1c4e62-nikolarins-projects.vercel.app",
         alias="ALLOWED_ORIGINS",
     )
+    allowed_origins: str = Field(default="http://localhost:3000", alias="ALLOWED_ORIGINS")
     requests_per_minute: int = Field(default=20, alias="REQUESTS_PER_MINUTE")
 
 

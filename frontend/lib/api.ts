@@ -1,16 +1,11 @@
 import type { AnalyzeRequest, PreviewReportResponse, VanityAdvisorResponse } from "@/types/analysis";
 
-export const API_BASE =
+const API_BASE =
   process.env.NEXT_PUBLIC_BACKEND_URL ??
   process.env.NEXT_PUBLIC_API_BASE_URL ??
   process.env.NEXT_PUBLIC_API_URL ??
   "http://localhost:8000";
-
-export function getApiUrl(path: string): string {
-  const normalizedBase = API_BASE.replace(/\/+$/, "");
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${normalizedBase}${normalizedPath}`;
-}
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
 async function parseError(response: Response): Promise<never> {
   let message = "Request failed.";
@@ -36,25 +31,19 @@ export async function prepareScan(payload: AnalyzeRequest): Promise<{ scan_id: s
   if (payload.gender) formData.append("gender", payload.gender);
   if (payload.goals) formData.append("goals", payload.goals);
 
-  const url = getApiUrl("/api/v1/scans/prepare");
-  console.log("DEBUG: Fetching prepareScan at", url);
-  const response = await fetch(url, { method: "POST", body: formData });
+  const response = await fetch(`${API_BASE}/api/v1/scans/prepare`, { method: "POST", body: formData });
   if (!response.ok) await parseError(response);
   return (await response.json()) as { scan_id: string; image_count: number; message: string };
 }
 
 export async function getPreview(scanId: string): Promise<PreviewReportResponse> {
-  const url = getApiUrl(`/api/v1/scans/${scanId}/preview`);
-  console.log("DEBUG: Fetching getPreview at", url);
-  const response = await fetch(url);
+  const response = await fetch(`${API_BASE}/api/v1/scans/${scanId}/preview`);
   if (!response.ok) await parseError(response);
   return (await response.json()) as PreviewReportResponse;
 }
 
 export async function createCheckout(scanId: string): Promise<{ session_id: string; publishable_key: string }> {
-  const url = getApiUrl("/api/v1/payments/create-checkout");
-  console.log("DEBUG: Fetching createCheckout at", url);
-  const response = await fetch(url, {
+  const response = await fetch(`${API_BASE}/api/v1/payments/create-checkout`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ scan_id: scanId })
@@ -64,9 +53,7 @@ export async function createCheckout(scanId: string): Promise<{ session_id: stri
 }
 
 export async function analyzePaid(scanId: string, stripeSessionId: string): Promise<VanityAdvisorResponse> {
-  const url = getApiUrl("/api/v1/analyze-paid");
-  console.log("DEBUG: Fetching analyzePaid at", url);
-  const response = await fetch(url, {
+  const response = await fetch(`${API_BASE}/api/v1/analyze-paid`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ scan_id: scanId, stripe_session_id: stripeSessionId })

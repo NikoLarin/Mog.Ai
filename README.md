@@ -100,5 +100,6 @@ npm run dev
 
 - `POST /api/v1/scans/prepare`: stores uploaded photos + metadata as a preview scan.
 - `POST /api/v1/payments/create-checkout`: creates one-time Stripe Checkout session ($4.99 by default).
+  - Checkout redirect URLs are forced to the stable production domain (`https://mog-ai.vercel.app`) if `FRONTEND_URL` is accidentally set to an ephemeral Vercel preview URL, preventing post-payment `DEPLOYMENT_NOT_FOUND` redirects.
 - `POST /api/v1/analyze-paid`: verifies paid Stripe session and runs full GPT-4o analysis.
 - Frontend redirects to Stripe Checkout, then `/scan/success` triggers paid analysis.

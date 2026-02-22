@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import shutil
 import uuid
 from collections.abc import Sequence
@@ -23,6 +24,22 @@ from app.services.vision_advisor import VisionAdvisorService
 router = APIRouter(prefix="/api/v1", tags=["analysis"])
 SCAN_STORAGE = Path("/tmp/mog_scans")
 logger = logging.getLogger(__name__)
+
+
+def _checkout_frontend_base_url(settings: Settings) -> str:
+    base_url = settings.frontend_base_url.strip().rstrip("/")
+    if not base_url:
+        return "https://mog-ai.vercel.app"
+
+    preview_pattern = r"^https://mog-ai-git-.*-nikolarins-projects\.vercel\.app$"
+    if re.match(preview_pattern, base_url):
+        logger.warning(
+            "FRONTEND_URL points to ephemeral Vercel preview (%s). Overriding to production domain for Stripe redirects.",
+            base_url,
+        )
+        return "https://mog-ai.vercel.app"
+
+    return base_url
 
 
 async def _generate_report_for_scan(scan_id: str, settings: Settings) -> None:
@@ -210,10 +227,12 @@ async def create_checkout(payload: CreateCheckoutRequest, settings: Settings = D
     stripe.api_key = settings.stripe_secret_key
 
     try:
+        frontend_base_url = _checkout_frontend_base_url(settings)
+
         checkout_payload: dict[str, object] = {
             "mode": "payment",
-            "success_url": f"{settings.frontend_base_url}/scan/success?session_id={{CHECKOUT_SESSION_ID}}&scan_id={payload.scan_id}",
-            "cancel_url": f"{settings.frontend_base_url}/scan/cancel?scan_id={payload.scan_id}",
+            "success_url": f"{frontend_base_url}/scan/success?session_id={{CHECKOUT_SESSION_ID}}&scan_id={payload.scan_id}",
+            "cancel_url": f"{frontend_base_url}/scan/cancel?scan_id={payload.scan_id}",
             "client_reference_id": payload.scan_id,
             "metadata": {"scan_id": payload.scan_id},
             "line_items": [

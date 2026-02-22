@@ -183,8 +183,8 @@ async def create_checkout(payload: CreateCheckoutRequest, settings: Settings = D
     try:
         checkout_payload: dict[str, object] = {
             "mode": "payment",
-            "success_url": f"{settings.frontend_base_url}/scan/success?session_id={{CHECKOUT_SESSION_ID}}&scan_id={payload.scan_id}",
-            "cancel_url": f"{settings.frontend_base_url}/scan/cancel?scan_id={payload.scan_id}",
+            success_url = "https://mog-ai.vercel.app/scan/success?session_id={CHECKOUT_SESSION_ID}&scan_id={scan_id}"
+            cancel_url = "https://mog-ai.vercel.app/upload"  # or your cancel page
             "client_reference_id": payload.scan_id,
             "metadata": {"scan_id": payload.scan_id},
             "line_items": [

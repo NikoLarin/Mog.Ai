@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,7 +18,11 @@ class Settings(BaseSettings):
     stripe_publishable_key: str = Field(alias="STRIPE_PUBLISHABLE_KEY")
     stripe_scan_price_cents: int = Field(default=499, alias="STRIPE_SCAN_PRICE_CENTS")
     stripe_currency: str = Field(default="usd", alias="STRIPE_CURRENCY")
-    frontend_base_url: str = Field(default="http://localhost:3000", alias="FRONTEND_BASE_URL")
+    stripe_webhook_secret: str | None = Field(default=None, alias="STRIPE_WEBHOOK_SECRET")
+    frontend_base_url: str = Field(
+        default="https://mog-ai.vercel.app",
+        validation_alias=AliasChoices("FRONTEND_URL", "FRONTEND_BASE_URL"),
+    )
 
     max_images: int = Field(default=4, alias="MAX_IMAGES")
     max_image_size_mb: int = Field(default=10, alias="MAX_IMAGE_SIZE_MB")
@@ -32,3 +36,4 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+

@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import stripe
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 
 from app.core.config import Settings, get_settings
 from app.schemas.analysis import (
@@ -208,6 +208,31 @@ async def create_checkout(payload: CreateCheckoutRequest, settings: Settings = D
 
     return CreateCheckoutResponse(session_id=session.id, publishable_key=settings.stripe_publishable_key)
 
+
+@router.post("/webhooks/stripe")
+async def stripe_webhook(request: Request, settings: Settings = Depends(get_settings)) -> dict[str, bool]:
+    if not settings.stripe_webhook_secret:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Stripe webhook secret not configured.")
+
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+    if not sig_header:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing Stripe signature header.")
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, settings.stripe_webhook_secret)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid webhook payload: {exc}") from exc
+    except stripe.error.SignatureVerificationError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid webhook signature: {exc}") from exc
+
+    if event.get("type") == "checkout.session.completed":
+        session = event.get("data", {}).get("object", {})
+        scan_id = (session.get("metadata") or {}).get("scan_id") or session.get("client_reference_id")
+        if scan_id:
+            print(f"[stripe webhook] checkout.session.completed for scan_id={scan_id}")
+
+    return {"received": True}
 
 @router.post("/analyze-paid", response_model=VanityAdvisorResponse)
 async def analyze_paid(payload: AnalyzePaidRequest, settings: Settings = Depends(get_settings)) -> VanityAdvisorResponse:

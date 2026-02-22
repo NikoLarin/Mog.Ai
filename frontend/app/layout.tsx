@@ -3,10 +3,33 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Vanity AI Advisor",
-  description: "Upload photos and get structured aesthetic coaching insights."
+  title: "MogMax – AI Vanity Scan & Looksmaxxing Advisor",
+  description: "Upload your photos. Get brutally honest AI physique analysis & maxxing advice. Unlock your full potential.",
+  metadataBase: new URL("https://mogmax.org"),
+  openGraph: {
+    title: "MogMax – AI Vanity Scan & Looksmaxxing Advisor",
+    description: "Upload your photos. Get brutally honest AI physique analysis & maxxing advice. Unlock your full potential.",
+    url: "https://mogmax.org",
+    siteName: "MogMax",
+    images: [
+      {
+        url: "/og-image.jpg",           // ← this is the key image
+        width: 1200,
+        height: 630,
+        alt: "MogMax AI Vanity Scan Preview",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MogMax – AI Vanity Scan & Looksmaxxing",
+    description: "Upload photos → Get brutally honest AI physique analysis.",
+    images: ["/og-image.jpg"],
+  },
+  // ... your existing icons / other metadata
 };
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">

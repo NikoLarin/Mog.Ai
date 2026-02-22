@@ -24,6 +24,7 @@ for required_origin in (
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://mog-ai.vercel.app",
+    "https://mogmax.org"
 ):
     if required_origin not in allowed_origins:
         allowed_origins.append(required_origin)

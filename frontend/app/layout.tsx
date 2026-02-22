@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     siteName: "MogMax",
     images: [
       {
-        url: "/og-image.jpg",           // ← this is the key image
+        url: "/og-image1.jpg",           // ← this is the key image
         width: 1200,
         height: 630,
         alt: "MogMax AI Vanity Scan Preview",
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "MogMax – AI Vanity Scan & Looksmaxxing",
     description: "Upload photos → Get brutally honest AI physique analysis.",
-    images: ["/og-image.jpg"],
+    images: ["/og-image1.jpg"],
   },
   // ... your existing icons / other metadata
 };

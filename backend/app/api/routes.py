@@ -16,6 +16,8 @@ from app.schemas.analysis import (
     PreparedScanResponse,
     PreviewReportResponse,
     UserContext,
+    ValidatePromoRequest,
+    ValidatePromoResponse,
     VanityAdvisorResponse,
 )
 from app.services.vision_advisor import VisionAdvisorService
@@ -41,6 +43,49 @@ def _checkout_frontend_base_url(settings: Settings) -> str:
 
     return production_url
 
+
+
+
+def _resolve_promotion_code(raw_code: str, settings: Settings) -> tuple[str, str, str, str | None]:
+    normalized = raw_code.strip()
+    if not normalized:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Promo code cannot be empty.")
+
+    stripe.api_key = settings.stripe_secret_key
+    try:
+        result = stripe.PromotionCode.list(code=normalized, limit=1, active=True)
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Failed to validate promo code: {exc}") from exc
+
+    if not result.data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or inactive promo code.")
+
+    promo = result.data[0]
+    coupon = promo.get("coupon") or {}
+
+    redeem_by = coupon.get("redeem_by")
+    if redeem_by:
+        import time
+        if int(redeem_by) < int(time.time()):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This promo code has expired.")
+
+    max_redemptions = promo.get("max_redemptions")
+    times_redeemed = promo.get("times_redeemed") or 0
+    if max_redemptions is not None and int(times_redeemed) >= int(max_redemptions):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This promo code has reached its redemption limit.")
+
+    percent_off = coupon.get("percent_off")
+    amount_off = coupon.get("amount_off")
+    currency = (coupon.get("currency") or settings.stripe_currency).upper()
+
+    if percent_off is not None:
+        discount_display = f"{percent_off:g}% off"
+    elif amount_off is not None:
+        discount_display = f"{currency} ${(amount_off / 100):.2f} off"
+    else:
+        discount_display = "Discount applied"
+
+    return str(promo.get("id")), str(promo.get("code") or normalized), discount_display, coupon.get("name")
 
 async def _generate_report_for_scan(scan_id: str, settings: Settings) -> None:
     folder = _scan_dir(scan_id)
@@ -213,6 +258,14 @@ async def preview_scan(scan_id: str, settings: Settings = Depends(get_settings))
 
 
 
+
+
+@router.post("/payments/validate-promo", response_model=ValidatePromoResponse)
+async def validate_promo(payload: ValidatePromoRequest, settings: Settings = Depends(get_settings)) -> ValidatePromoResponse:
+    _, promo_code, discount_display, coupon_name = _resolve_promotion_code(payload.promo_code, settings)
+    return ValidatePromoResponse(valid=True, promo_code=promo_code, discount_display=discount_display, coupon_name=coupon_name)
+
+
 @router.post("/payments/create-checkout", response_model=CreateCheckoutResponse)
 async def create_checkout(payload: CreateCheckoutRequest, settings: Settings = Depends(get_settings)) -> CreateCheckoutResponse:
     scan_folder = _scan_dir(payload.scan_id)
@@ -235,6 +288,7 @@ async def create_checkout(payload: CreateCheckoutRequest, settings: Settings = D
             "cancel_url": f"{frontend_base_url}/scan/cancel?scan_id={payload.scan_id}",
             "client_reference_id": payload.scan_id,
             "metadata": {"scan_id": payload.scan_id},
+            "allow_promotion_codes": True,
             "line_items": [
                 {
                     "quantity": 1,
@@ -246,6 +300,10 @@ async def create_checkout(payload: CreateCheckoutRequest, settings: Settings = D
                 }
             ],
         }
+        if payload.promo_code and payload.promo_code.strip():
+            promo_id, _, _, _ = _resolve_promotion_code(payload.promo_code, settings)
+            checkout_payload["discounts"] = [{"promotion_code": promo_id}]
+
         if context.email:
             checkout_payload["customer_email"] = context.email
             checkout_payload["metadata"] = {"scan_id": payload.scan_id, "email": context.email}

@@ -3,7 +3,7 @@
 import { loadStripe } from "@stripe/stripe-js";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { createCheckout, getPreview, prepareScan } from "@/lib/api";
+import { createCheckout, getPreview, prepareScan, validatePromoCode } from "@/lib/api";
 import type { PreviewReportResponse } from "@/types/analysis";
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -27,6 +27,10 @@ export function UploadForm() {
   const [loading, setLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoFeedback, setPromoFeedback] = useState<string | null>(null);
+  const [promoApplied, setPromoApplied] = useState(false);
+  const [promoLoading, setPromoLoading] = useState(false);
 
   const previewSectionRef = useRef<HTMLElement | null>(null);
   const previews = useMemo(() => files.map((file) => ({ file, url: URL.createObjectURL(file) })), [files]);
@@ -42,6 +46,8 @@ export function UploadForm() {
     setScanId(null);
     setPreview(null);
     setError(null);
+    setPromoApplied(false);
+    setPromoFeedback(null);
   };
 
   const onPrepare = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -75,13 +81,36 @@ export function UploadForm() {
     }
   };
 
+
+  const onApplyPromo = async () => {
+    const trimmed = promoCode.trim();
+    if (!trimmed) {
+      setPromoApplied(false);
+      setPromoFeedback("Enter a promo code first.");
+      return;
+    }
+
+    setPromoLoading(true);
+    setPromoFeedback(null);
+    try {
+      const validated = await validatePromoCode(trimmed);
+      setPromoApplied(true);
+      setPromoFeedback(`Promo applied: ${validated.discount_display}${validated.coupon_name ? ` (${validated.coupon_name})` : ""}`);
+    } catch (promoError) {
+      setPromoApplied(false);
+      setPromoFeedback(promoError instanceof Error ? promoError.message : "Invalid promo code.");
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
   const onCheckout = async () => {
     if (!scanId) return;
 
     setCheckoutLoading(true);
     setError(null);
     try {
-      const checkout = await createCheckout(scanId);
+      const checkout = await createCheckout(scanId, promoCode);
       const stripe = await loadStripe(checkout.publishable_key);
       if (!stripe) throw new Error("Stripe failed to initialize.");
 
@@ -162,6 +191,34 @@ export function UploadForm() {
 
         <textarea value={goals} onChange={(e) => setGoals(e.target.value)} placeholder="Goals" rows={3} className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
 
+
+        <div className="rounded-lg border border-slate-700 bg-slate-900/40 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Promo code (optional)</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <input
+              value={promoCode}
+              onChange={(e) => {
+                setPromoCode(e.target.value);
+                setPromoApplied(false);
+                setPromoFeedback(null);
+              }}
+              placeholder="Enter promo code (e.g. TEST50)"
+              className="min-w-[220px] flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+            />
+            <button
+              type="button"
+              onClick={onApplyPromo}
+              disabled={promoLoading}
+              className="rounded-md border border-emerald-500/40 bg-emerald-500/20 px-3 py-2 text-sm font-medium text-emerald-200 hover:bg-emerald-500/30 disabled:opacity-60"
+            >
+              {promoLoading ? "Applying..." : "Apply"}
+            </button>
+          </div>
+          {promoFeedback && (
+            <p className={`mt-2 text-sm ${promoApplied ? "text-emerald-300" : "text-rose-300"}`}>{promoFeedback}</p>
+          )}
+        </div>
+
         {error && <p className="rounded-md bg-rose-500/20 px-3 py-2 text-sm text-rose-200">{error}</p>}
 
         <div className="flex flex-wrap gap-3">
@@ -176,7 +233,7 @@ export function UploadForm() {
             onClick={onCheckout}
             className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {checkoutLoading ? "Redirecting..." : "Unlock Full Report – $4.99"}
+            {checkoutLoading ? "Redirecting..." : promoApplied ? "Unlock Full Report – Promo Applied" : "Unlock Full Report – $4.99"}
           </button>
         </div>
       </form>

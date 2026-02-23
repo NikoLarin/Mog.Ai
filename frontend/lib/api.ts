@@ -1,4 +1,4 @@
-import type { AnalyzeRequest, PreviewReportResponse, VanityAdvisorResponse } from "@/types/analysis";
+import type { AnalyzeRequest, PreviewReportResponse, PromoValidationResponse, VanityAdvisorResponse } from "@/types/analysis";
 
 const ENV_API_BASE =
   process.env.NEXT_PUBLIC_BACKEND_URL ??
@@ -63,17 +63,31 @@ export async function getPreview(scanId: string): Promise<PreviewReportResponse>
   return (await response.json()) as PreviewReportResponse;
 }
 
-export async function createCheckout(scanId: string): Promise<{ session_id: string; publishable_key: string }> {
+export async function createCheckout(scanId: string, promoCode?: string): Promise<{ session_id: string; publishable_key: string }> {
   const url = getApiUrl("/api/v1/payments/create-checkout");
   console.log("DEBUG: Fetching createCheckout at", url);
   const response = await fetch(url, {
     method: "POST",
     mode: "cors",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ scan_id: scanId })
+    body: JSON.stringify({ scan_id: scanId, promo_code: promoCode?.trim() || undefined })
   });
   if (!response.ok) await parseError(response);
   return (await response.json()) as { session_id: string; publishable_key: string };
+}
+
+
+export async function validatePromoCode(promoCode: string): Promise<PromoValidationResponse> {
+  const url = getApiUrl("/api/v1/payments/validate-promo");
+  console.log("DEBUG: Fetching validatePromoCode at", url);
+  const response = await fetch(url, {
+    method: "POST",
+    mode: "cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ promo_code: promoCode })
+  });
+  if (!response.ok) await parseError(response);
+  return (await response.json()) as PromoValidationResponse;
 }
 
 export async function analyzePaid(scanId: string, stripeSessionId: string): Promise<VanityAdvisorResponse> {

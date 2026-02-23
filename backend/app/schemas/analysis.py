@@ -57,6 +57,22 @@ class CreateCheckoutRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     scan_id: str
+    promo_code: str | None = Field(default=None, max_length=64)
+
+
+class ValidatePromoRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    promo_code: str = Field(min_length=1, max_length=64)
+
+
+class ValidatePromoResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    valid: bool
+    promo_code: str
+    coupon_name: str | None = None
+    discount_display: str
 
 
 class CreateCheckoutResponse(BaseModel):

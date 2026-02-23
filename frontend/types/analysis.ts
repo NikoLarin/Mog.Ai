@@ -34,3 +34,11 @@ export interface PreviewReportResponse {
   hidden_insights_count: number;
   tease_line: string;
 }
+
+
+export interface PromoValidationResponse {
+  valid: boolean;
+  promo_code: string;
+  coupon_name: string | null;
+  discount_display: string;
+}

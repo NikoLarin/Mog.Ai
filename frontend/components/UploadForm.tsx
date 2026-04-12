@@ -127,7 +127,7 @@ export function UploadForm() {
       <form className="card space-y-4" onSubmit={onPrepare}>
         <div>
           <h2 className="text-xl font-semibold">Upload photos</h2>
-          <p className="mt-1 text-sm text-slate-300">Get your free preview now. Unlock your full personalized report for a one-time $4.99.</p>
+          <p className="mt-1 text-sm text-slate-300">Get your free preview now. Unlock your full personalized report.</p>
         </div>
 
         <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-600 p-6 text-center hover:border-slate-400">

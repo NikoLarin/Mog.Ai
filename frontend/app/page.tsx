@@ -7,7 +7,7 @@ export default function HomePage() {
         <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-indigo-400/20 blur-2xl" />
         <h1 className="text-3xl font-bold tracking-tight">Mogmax.org — Vanity AI Advisor</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-200">
-          Upload 2–4 photos to generate a free preview. Unlock your full premium AI algorithm report for a one-time $4.99.
+          Upload 2–4 photos to generate a free preview. Unlock your full premium AI algorithm report for a one-time.
         </p>
         <div className="mt-3 inline-flex rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1 text-xs text-slate-300">
           Pay-per-scan • Visual estimation only • Not medical diagnosis

@@ -233,7 +233,7 @@ export function UploadForm() {
             onClick={onCheckout}
             className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {checkoutLoading ? "Redirecting..." : promoApplied ? "Unlock Full Report – Promo Applied" : "Unlock Full Report – $4.99"}
+            {checkoutLoading ? "Redirecting..." : promoApplied ? "Unlock Full Report – Promo Applied" : "Unlock Full Report"}
           </button>
         </div>
       </form>

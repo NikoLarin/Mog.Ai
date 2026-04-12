@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     stripe_secret_key: str = Field(alias="STRIPE_SECRET_KEY")
     stripe_publishable_key: str = Field(alias="STRIPE_PUBLISHABLE_KEY")
-    stripe_scan_price_cents: int = Field(default=0, alias="STRIPE_SCAN_PRICE_CENTS")
+    stripe_scan_price_cents: int = Field(default=499, alias="STRIPE_SCAN_PRICE_CENTS")
     stripe_currency: str = Field(default="usd", alias="STRIPE_CURRENCY")
     stripe_webhook_secret: str | None = Field(default=None, alias="STRIPE_WEBHOOK_SECRET")
     frontend_base_url: str = Field(

@@ -127,7 +127,7 @@ export function UploadForm() {
       <form className="card space-y-4" onSubmit={onPrepare}>
         <div>
           <h2 className="text-xl font-semibold">Upload photos</h2>
-          <p className="mt-1 text-sm text-slate-300">Get your free preview now. Unlock your full personalized report.</p>
+          <p className="mt-1 text-sm text-slate-300">Get your free preview now. Unlock your full personalized report for a one-time $4.99.</p>
         </div>
 
         <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-600 p-6 text-center hover:border-slate-400">
@@ -233,7 +233,7 @@ export function UploadForm() {
             onClick={onCheckout}
             className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {checkoutLoading ? "Redirecting..." : promoApplied ? "Unlock Full Report – Promo Applied" : "Unlock Full Report"}
+            {checkoutLoading ? "Redirecting..." : promoApplied ? "Unlock Full Report – Promo Applied" : "Unlock Full Report – $4.99"}
           </button>
         </div>
       </form>

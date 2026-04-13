@@ -32,7 +32,7 @@ class VanityAdvisorResponse(BaseModel):
     strengths: list[str] = Field(min_length=4, max_length=7)
     areas_for_improvement: list[str] = Field(min_length=3)
     body_fat_estimate: BodyFatEstimate
-    personalized_steps: list[str] = Field(min_length=3)
+    personalized_steps: list[str] = Field(min_length=6)
     limitations: list[str]
 
 

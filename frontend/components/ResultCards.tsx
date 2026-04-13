@@ -144,6 +144,59 @@ const PLAYBOOK: PlaybookItem[] = [
   }
 ];
 
+const EXPANDED_SUGGESTIONS: string[] = [
+  "Track weekly front/side/back photos in identical lighting and review objectively every Sunday.",
+  "Set a strict sleep anchor: same bedtime/wake time 7 days per week for at least 4 weeks.",
+  "Hit 8-12k daily steps before adding extra cardio sessions.",
+  "Run a 3-day hydration baseline and keep water intake consistent day to day.",
+  "Standardize sodium intake so jawline and face fullness fluctuations are minimized.",
+  "Eat protein at each meal to support lean tissue while cutting body fat.",
+  "Add 25-40g fiber/day to improve satiety and skin-related gut stability.",
+  "Use a 300-500 kcal deficit instead of crash dieting to avoid rebound bloat.",
+  "Lift 3-5x/week with progressive overload and logbook tracking.",
+  "Prioritize rear delts and upper back for better shoulder posture silhouette.",
+  "Add twice-weekly neck/trap mobility to reduce rounded-shoulder appearance.",
+  "Do 10 minutes of posture drills after each workout session.",
+  "Use chin-tuck progressions with pain-free range only.",
+  "Upgrade haircut every 3-5 weeks to keep facial framing sharp.",
+  "Ask barber for temple/side volume balance to improve face proportions.",
+  "Match eyebrow shape to eye axis; avoid over-thinning tails.",
+  "Use brow pencil shade one tone lighter than hair for natural density.",
+  "Trim/shape facial hair on a fixed cadence, not only before photos.",
+  "Keep neckline clean and symmetrical two fingers above Adam's apple.",
+  "Use SPF 30+ daily even on cloudy days to prevent pigment setbacks.",
+  "Add a gentle nightly retinoid progression if tolerated and clinician-approved.",
+  "Use vitamin C in the morning and moisturizer barrier support at night.",
+  "Patch-test any active skincare product before full-face use.",
+  "Limit late-night sugar and alcohol 4-5 nights/week for less morning puffiness.",
+  "Reduce ultra-processed snacks and monitor skin/oiliness changes for 3 weeks.",
+  "Whiten teeth in controlled cycles with sensitivity management.",
+  "Book dental cleaning before whitening for more even results.",
+  "Use lip SPF and occlusive balm nightly for cleaner mouth-area texture.",
+  "Use eye-level camera framing for less lens distortion in progress photos.",
+  "Avoid wide-angle front camera close-ups for assessment images.",
+  "Take all check-in photos at same time of day, ideally morning.",
+  "Keep expression neutral for true symmetry comparisons.",
+  "Use plain, fitted clothing in scans so body lines read clearly.",
+  "Run a 12-week phase: cut, maintain, then micro-bulk only if needed.",
+  "Review one bottleneck weekly (sleep, diet, training, grooming) and fix it first.",
+  "Add one deload week every 6-8 weeks to prevent burnout and inflammation.",
+  "Track waist, weight trend, and photos together; never use one metric alone.",
+  "Choose one signature scent and grooming routine to reinforce social presence.",
+  "Improve wardrobe fit through shoulders/waist before buying more pieces.",
+  "Favor high-contrast outfit palettes that complement your undertone.",
+  "Use consistent beard/hair/brow tone harmony to avoid facial mismatch.",
+  "Use a weekly exfoliation max 1-2x to avoid barrier damage.",
+  "Increase omega-3 intake and monitor skin dryness over 6 weeks.",
+  "Keep caffeine earlier in day to protect sleep quality and eye-area recovery.",
+  "Practice 3 best angles (front, 45°, side) with posture cues before photos.",
+  "Use nasal breathing walks for stress control and reduced facial tension.",
+  "Set monthly check-ins with objective goals instead of daily aesthetic judgment.",
+  "If considering medication/topicals/procedures, get clinician risk review first.",
+  "Treat consistency as leverage: 90 days of boring execution beats 7 days of extremes.",
+  "Stop changing multiple variables at once; test one adjustment per 2-week block."
+];
+
 function wrapPdfLine(line: string, maxChars = 88): string[] {
   if (line.length <= maxChars) return [line];
 
@@ -163,17 +216,27 @@ function wrapPdfLine(line: string, maxChars = 88): string[] {
 function getPlaybook(areas: string[]): PlaybookItem[] {
   const text = areas.join(" ");
   const matched = PLAYBOOK.filter((item) => item.trigger.test(text));
-  if (matched.length > 0) return matched;
+
+  const base = matched.length > 0
+    ? matched
+    : [
+        {
+          trigger: /.*/,
+          title: "General execution",
+          methods: [
+            "Set 3 weekly KPIs: physique, posture, and grooming; review every Sunday.",
+            "Use identical weekly photos and only change one variable at a time.",
+            "Prioritize sustainable progression over aggressive spikes to avoid rebound."
+          ]
+        }
+      ];
 
   return [
+    ...base,
     {
       trigger: /.*/,
-      title: "General execution",
-      methods: [
-        "Set 3 weekly KPIs: physique, posture, and grooming; review every Sunday.",
-        "Use identical weekly photos and only change one variable at a time.",
-        "Prioritize sustainable progression over aggressive spikes to avoid rebound."
-      ]
+      title: "Expanded Suggestion Base (50 Extra Actions)",
+      methods: EXPANDED_SUGGESTIONS
     }
   ];
 }

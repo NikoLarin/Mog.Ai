@@ -37,7 +37,7 @@ export default function FeaturesPage() {
     <div className="space-y-6">
       <header className="rounded-2xl border border-teal-500/30 bg-gradient-to-r from-slate-950 via-slate-900 to-teal-950/40 p-6">
         <p className="text-xs uppercase tracking-[0.2em] text-teal-300">Mogmax.org Features</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-100">Get Your Personalized AI Vanity Advisor Report </h1>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-100">Get Your Personalized AI Vanity Advisor Report – $4.99 One-Time</h1>
         <p className="mt-3 max-w-3xl text-sm text-slate-300">
           See what the product does, what to expect, and how to get more accurate scans.
           Ready to run your scan? <Link className="text-teal-300 underline" href="/">Start here</Link>.

@@ -41,8 +41,9 @@ Consistency constraint:
 - For identical inputs, estimates must be very similar (target ±1-2%), especially body-fat and numeric ratings.
 
 Step constraints:
-- personalized_steps must be highly personalized, actionable, and specific to this user’s visible traits + stated goals.
+- personalized_steps must contain 6-10 highly personalized, actionable recommendations specific to this user’s visible traits + stated goals.
 - Each step must explicitly reference the exact issue it targets (e.g., "for visible under-eye darkness..." or "for sparse/missing brows...").
+- Expand recommendation base across multiple domains when relevant: training, nutrition, grooming, styling, posture, recovery, and optional doctor-supervised interventions.
 - Do not include generic filler steps; each step must explain exactly what to do, frequency, and progression where applicable.
 - Include practical methods like exercise selection/progression, nutrition habits, grooming/style actions, and when appropriate doctor-supervised treatment discussions.
 
@@ -134,7 +135,8 @@ def _response_schema() -> dict[str, Any]:
                 "personalized_steps": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "minItems": 3,
+                    "minItems": 6,
+                    "maxItems": 10,
                 },
                 "limitations": {
                     "type": "array",

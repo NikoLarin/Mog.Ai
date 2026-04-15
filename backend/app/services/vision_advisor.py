@@ -34,6 +34,8 @@ Safety/limitations constraints:
 - NEVER give medical diagnoses.
 - Mention uncertainty from lighting, pose, lens, and missing metabolic/clinical data.
 - Warn against aggressive deficits and unsafe neck training progression.
+- Weight-loss safety rule: if provided BMI is below 18.5, do NOT recommend cutting, calorie deficits, fat-loss phases, or appetite suppression.
+- If provided BMI is below 18.5, recommend weight maintenance or a small surplus with resistance training, plus clinician review if needed.
 - If mentioning medication/topicals/procedures, state they require doctor consent/supervision.
 - Use culturally neutral aesthetic framing unless user specifies otherwise.
 
@@ -195,21 +197,40 @@ class VisionAdvisorService:
             )
         return image_content
 
+    @staticmethod
+    def _compute_bmi(context: UserContext) -> float | None:
+        if context.height_cm and context.weight_kg:
+            height_m = context.height_cm / 100
+            if height_m > 0:
+                return context.weight_kg / (height_m * height_m)
 
-    async def preview_raw_images(self, images: Sequence[tuple[bytes, str]], context: UserContext) -> PreviewReportResponse:
-        image_content = self._build_image_content(images)
-        user_context = {
+        if context.height_ft is not None and context.height_in is not None and context.weight_lbs:
+            total_inches = (context.height_ft * 12) + context.height_in
+            if total_inches > 0:
+                return 703 * context.weight_lbs / (total_inches * total_inches)
+
+        return None
+
+    def _build_user_context(self, context: UserContext, image_count: int) -> dict[str, Any]:
+        bmi = self._compute_bmi(context)
+        return {
             "height_cm": context.height_cm,
             "weight_kg": context.weight_kg,
             "height_ft": context.height_ft,
             "height_in": context.height_in,
             "weight_lbs": context.weight_lbs,
+            "derived_bmi": round(bmi, 1) if bmi is not None else None,
             "age": context.age,
             "email": context.email,
             "gender": context.gender,
             "goals": context.goals,
-            "image_count": len(images),
+            "image_count": image_count,
         }
+
+
+    async def preview_raw_images(self, images: Sequence[tuple[bytes, str]], context: UserContext) -> PreviewReportResponse:
+        image_content = self._build_image_content(images)
+        user_context = self._build_user_context(context, len(images))
 
         messages = [
             {"role": "system", "content": PREVIEW_PROMPT},
@@ -238,19 +259,7 @@ class VisionAdvisorService:
 
     async def analyze_raw_images(self, images: Sequence[tuple[bytes, str]], context: UserContext) -> VanityAdvisorResponse:
         image_content = self._build_image_content(images)
-
-        user_context = {
-            "height_cm": context.height_cm,
-            "weight_kg": context.weight_kg,
-            "height_ft": context.height_ft,
-            "height_in": context.height_in,
-            "weight_lbs": context.weight_lbs,
-            "age": context.age,
-            "email": context.email,
-            "gender": context.gender,
-            "goals": context.goals,
-            "image_count": len(images),
-        }
+        user_context = self._build_user_context(context, len(images))
 
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -263,6 +272,7 @@ class VisionAdvisorService:
                             "Analyze these photos for a comprehensive aesthetic assessment. "
                             "Start with positives, then constructive improvements, then steps. "
                             "Make observations photo-specific and concrete, not generic. "
+                            "Only include recommendations that directly map to traits visible in these photos. "
                             "Do not omit clearly visible unattractive traits. "
                             f"Context: {user_context}."
                         ),

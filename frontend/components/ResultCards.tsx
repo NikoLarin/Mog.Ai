@@ -64,7 +64,8 @@ const PLAYBOOK: PlaybookItem[] = [
     trigger: /body fat|definition|lean|waist|fat|cut/i,
     title: "Leaner look / sharper definition",
     methods: [
-      "Set a moderate 300-500 kcal deficit, recalibrate weekly via trend weight + consistent comparison photos.",
+      "Only run a fat-loss phase if your BMI is in a healthy/above-healthy range; if BMI is below 18.5, prioritize maintenance or a small surplus instead of cutting.",
+      "If fat loss is appropriate, use a moderate 300-500 kcal deficit and recalibrate weekly via trend weight + consistent comparison photos.",
       "Lift 4 days/week using progressive overload (push/pull/legs/upper-lower).",
       "Keep NEAT high (8-12k steps/day) and protein consistent to preserve muscle shape."
     ]
@@ -141,6 +142,60 @@ const PLAYBOOK: PlaybookItem[] = [
       "Practice 3 static poses (front/45-degree/side) to identify your strongest visual angles.",
       "Use consistent grooming and hair parting for week-to-week visual comparability."
     ]
+  },
+  {
+    trigger: /nose|nasal|breathing|mouth breathing/i,
+    title: "Nasal breathing and mid-face presentation",
+    methods: [
+      "Prioritize nasal-breathing habit work during low-intensity activity and sleep setup where possible.",
+      "Use anti-inflammatory basics first (humidity, hydration, allergen control) before trying aggressive interventions.",
+      "If chronic blockage/snoring is present, discuss ENT evaluation to rule out structural causes before self-treating."
+    ]
+  },
+  {
+    trigger: /wardrobe|style|fit|clothing|outfit|fashion/i,
+    title: "Wardrobe and fit optimization",
+    methods: [
+      "Use shoulder-fit-first tops and tapered lower-body cuts to improve silhouette instantly.",
+      "Build a neutral capsule (black/white/navy/charcoal) and add one accent color that complements skin undertone.",
+      "Tailor 2-3 core pieces instead of buying more low-fit items; fit quality beats quantity."
+    ]
+  },
+  {
+    trigger: /glasses|frames|eyewear/i,
+    title: "Eyewear and frame selection",
+    methods: [
+      "Match frame width to cheekbone width; oversized frames can hide eye-area definition.",
+      "Use medium-contrast frames that support brow line without overpowering facial features.",
+      "Take side-by-side photos in 2-3 frame shapes and keep only the strongest performer."
+    ]
+  },
+  {
+    trigger: /shoulders|v-taper|lats|width|narrow/i,
+    title: "V-taper and upper-body width",
+    methods: [
+      "Prioritize lateral delts and lats 2-3x/week (lateral raises, pull-ups/pulldowns, chest-supported rows).",
+      "Keep waist visually tight with core bracing work and avoid unnecessary bulk around obliques.",
+      "Track shoulder/waist ratio monthly using identical pose and camera distance."
+    ]
+  },
+  {
+    trigger: /chin|recessed|profile|side profile|mandible/i,
+    title: "Side-profile and chin projection presentation",
+    methods: [
+      "Use posture correction and neck-lengthening cues before photos to reduce soft-tissue compression under chin.",
+      "Keep body-fat trend moving down if needed; profile sharpness usually improves with lower facial adiposity.",
+      "For structural concerns, discuss orthodontic/maxillofacial assessment with licensed specialists before cosmetic decisions."
+    ]
+  },
+  {
+    trigger: /confidence|expression|awkward|pose|photogenic/i,
+    title: "Confidence and photogenic execution",
+    methods: [
+      "Practice a repeatable pre-photo routine (posture reset, jaw relaxed, slight squint, neutral smile).",
+      "Run weekly 10-minute camera drills to improve expression consistency and reduce awkwardness.",
+      "Use only your top 2-3 tested angles for profile photos; consistency outperforms random shots."
+    ]
   }
 ];
 
@@ -160,9 +215,10 @@ function wrapPdfLine(line: string, maxChars = 88): string[] {
   return parts;
 }
 
-function getPlaybook(areas: string[]): PlaybookItem[] {
-  const text = areas.join(" ");
-  const matched = PLAYBOOK.filter((item) => item.trigger.test(text));
+function getPlaybook(result: VanityAdvisorResponse): PlaybookItem[] {
+  // Keep matching tightly scoped to explicit improvement findings so recommendations stay photo-relevant.
+  const text = result.areas_for_improvement.join(" ");
+  const matched = PLAYBOOK.filter((item) => item.trigger.test(text)).slice(0, 5);
   if (matched.length > 0) return matched;
 
   return [
@@ -272,7 +328,7 @@ function downloadPdfReport(result: VanityAdvisorResponse, playbook: PlaybookItem
 }
 
 export function ResultCards({ result, autoDownload = false }: { result: VanityAdvisorResponse; autoDownload?: boolean }) {
-  const playbook = getPlaybook(result.areas_for_improvement);
+  const playbook = getPlaybook(result);
   const hasAutoDownloaded = useRef(false);
 
   useEffect(() => {
